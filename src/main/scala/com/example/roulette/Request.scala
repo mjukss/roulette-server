@@ -9,6 +9,8 @@ import io.circe.parser.decode
   val username: Username
 }
 
+
+
 object Request {
   final case class PlaceBet(username: Username, bet: Bet) extends Request
   final case class ClearBets(username: Username) extends Request
@@ -18,6 +20,8 @@ object Request {
   implicit val genDevConfig: Configuration =
     Configuration.default.withDiscriminator("requestType")
 
-  def fromString(string: String): Either[circe.Error, Request] = decode[Request](string)
+  type RequestOrError = Either[circe.Error, Request]
+
+  def fromString(string: String): RequestOrError = decode[Request](string)
 
 }

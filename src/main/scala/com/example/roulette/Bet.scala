@@ -27,11 +27,11 @@ import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
 
     final case class BetPosition(value: Int) extends AnyVal
     object BetPosition {
-      implicit val customIntEncoder: Codec[BetPosition] = deriveUnwrappedCodec[BetPosition]
+      implicit val betCodec: Codec[BetPosition] = deriveUnwrappedCodec[BetPosition]
     }
 
     final case class Chips(value: Int) extends AnyVal
     object Chips {
-      implicit val customStringEncoder: Codec[Chips] = deriveUnwrappedCodec[Chips]
+      implicit val chipCodec: Codec[Chips] = deriveUnwrappedCodec[Chips]
     }
   }

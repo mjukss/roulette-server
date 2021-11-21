@@ -10,8 +10,7 @@ import io.circe.generic.extras.semiauto.deriveUnwrappedCodec
 
 object Player {
   final case class Username(value: String) extends AnyVal
-
   object Username {
-    implicit val customUsernameEncoder: Codec[Username] = deriveUnwrappedCodec[Username]
+    implicit val usernameCodec: Codec[Username] = deriveUnwrappedCodec[Username]
   }
 }

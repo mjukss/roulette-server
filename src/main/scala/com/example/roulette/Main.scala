@@ -3,6 +3,7 @@ package com.example.roulette
 import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, IOApp}
 import com.example.roulette.Cache.TimerCache
+import com.example.roulette.Request.RequestOrError
 import fs2.Stream
 import fs2.concurrent.Topic
 
@@ -12,7 +13,7 @@ object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] = {
     for {
-      q <- Queue.unbounded[IO, Option[RawRequest]]
+      q <- Queue.unbounded[IO, Option[RequestOrError]]
       t <- Topic[IO, Response]
       timerCache <- TimerCache()
 
