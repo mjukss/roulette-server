@@ -8,7 +8,7 @@ import fs2.concurrent.Topic
 import org.http4s.blaze.server.BlazeServerBuilder
 
 object RouletteServer {
-  def stream[F[_] : Async](queue: Queue[F, Option[FromClient]], t: Topic[F, ToClient]): Stream[F, ExitCode] = {
+  def stream[F[_] : Async](queue: Queue[F, Option[RawRequest]], t: Topic[F, Response]): Stream[F, ExitCode] = {
     BlazeServerBuilder[F]
       .bindHttp(8080, "localhost")
       .withHttpWebSocketApp(gameRoutes(queue, t)(_).orNotFound)
