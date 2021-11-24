@@ -25,7 +25,7 @@ object Main extends IOApp {
           .evalMap(_ => Response.fromTimerNotification(timerCache,gameCache, playerCache.readAll))
           .through(t.publish)
 
-        import ResponseProcessor.executeRequest
+        import RequestProcessor.executeRequest
         val rawRequestStream = Stream
           .fromQueueNoneTerminated(q)
           .evalMap(executeRequest(_, playerCache, gameCache))

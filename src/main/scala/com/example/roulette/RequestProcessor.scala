@@ -11,7 +11,7 @@ import com.example.roulette.Request.RequestOrError
 import com.example.roulette.Response.{BadRequest, BetPlaced, BetsCleared, PlayerRegistered, PlayerRemoved}
 
 
-object ResponseProcessor {
+object RequestProcessor {
 
   def executeRequest[F[_] : Monad](requestOrError: RequestOrError, playersCache: PlayersCache[F], gameCache: GameCache[F]): F[Response] =
     requestOrError match {
