@@ -2,7 +2,7 @@ package com.example.roulette
 
 import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, IOApp}
-import com.example.roulette.Cache.TimerCache
+import com.example.roulette.Cache.{GameCache, PlayersCache, TimerCache}
 import com.example.roulette.Request.RequestOrError
 import fs2.Stream
 import fs2.concurrent.Topic
@@ -15,22 +15,27 @@ object Main extends IOApp {
     for {
       q <- Queue.unbounded[IO, Option[RequestOrError]]
       t <- Topic[IO, Response]
-      timerCache <- TimerCache()
+      playerCache <- PlayersCache[IO]()
+      timerCache <-  TimerCache[IO]()
+      gameCache <- GameCache[IO]()
 
       exitCode <- {
-        val timerStream = Stream.awakeEvery[IO](1.seconds)
-          .as(timerCache)
-          .evalMap(Response.fromTimerNotification)
+        val timerStream = Stream
+          .awakeEvery[IO](1.seconds)
+          .evalMap(_ => Response.fromTimerNotification(timerCache,gameCache, playerCache.readAll))
           .through(t.publish)
 
+        import ResponseProcessor.executeRequest
         val rawRequestStream = Stream
           .fromQueueNoneTerminated(q)
-          .map(Response.fromRawRequest)
+          .evalMap(executeRequest(_, playerCache, gameCache))
           .through(t.publish)
 
-        val combinedStream = Stream(rawRequestStream, RouletteServer.stream(q, t), timerStream).parJoinUnbounded
-
-        combinedStream.compile.drain.as(ExitCode.Success)
+        Stream(rawRequestStream, RouletteServer.stream(playerCache, q, t), timerStream)
+          .parJoinUnbounded
+          .compile
+          .drain
+          .as(ExitCode.Success)
       }
     } yield exitCode
   }

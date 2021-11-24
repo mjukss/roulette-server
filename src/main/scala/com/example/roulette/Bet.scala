@@ -1,10 +1,14 @@
 package com.example.roulette
 
+import cats.Semigroup
+import com.example.roulette.Bet.Chips
 import io.circe.Codec
 import io.circe.generic.extras.semiauto.deriveUnwrappedCodec
 import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
 
-@ConfiguredJsonCodec sealed trait Bet
+@ConfiguredJsonCodec sealed trait Bet {
+  val betAmount: Chips
+}
   object Bet {
     final case class Straight(position: BetPosition, betAmount: Chips) extends Bet
     final case class Odd(betAmount: Chips) extends Bet
@@ -29,6 +33,8 @@ import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
     object BetPosition {
       implicit val betCodec: Codec[BetPosition] = deriveUnwrappedCodec[BetPosition]
     }
+
+    implicit def chipsSemigroup: Semigroup[Chips] = (x: Chips, y: Chips) => Chips(x.value + y.value)
 
     final case class Chips(value: Int) extends AnyVal
     object Chips {

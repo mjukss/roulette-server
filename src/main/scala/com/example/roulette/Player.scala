@@ -6,7 +6,10 @@ import io.circe.Codec
 import io.circe.generic.JsonCodec
 import io.circe.generic.extras.semiauto.deriveUnwrappedCodec
 
-@JsonCodec final case class Player(username: Username, balance: Chips = Chips(200), betPlaced: Chips = Chips(0))
+@JsonCodec final case class Player(username: Username,
+                                   balance: Chips = Chips(200),
+                                   betPlaced: Chips = Chips(0),
+                                   bets: List[Bet] = Nil)
 
 object Player {
   final case class Username(value: String) extends AnyVal

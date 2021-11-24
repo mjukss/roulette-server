@@ -33,7 +33,7 @@ object PlayerTest {
   val usernameJson = """"player-username""""
   val username: Username = Username("player-username")
   val player1: Player = Player(username)
-  val player1Json = """{"username":"player-username","balance":200,"betPlaced":0}"""
+  val player1Json = """{"username":"player-username","balance":200,"betPlaced":0,"bets":[]}"""
   val player2: Player = Player(username, balance = Chips(400))
-  val player2Json = """{"username":"player-username","balance":400,"betPlaced":0}"""
+  val player2Json = """{"username":"player-username","balance":400,"betPlaced":0,"bets":[]}"""
 }

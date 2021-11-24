@@ -9,8 +9,6 @@ import io.circe.parser.decode
   val username: Username
 }
 
-
-
 object Request {
   final case class PlaceBet(username: Username, bet: Bet) extends Request
   final case class ClearBets(username: Username) extends Request
