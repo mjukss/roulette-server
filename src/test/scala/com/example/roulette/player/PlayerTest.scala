@@ -1,7 +1,7 @@
-package com.example.roulette
+package com.example.roulette.player
 
-import com.example.roulette.Bet.Chips
-import com.example.roulette.Player.Username
+import com.example.roulette.bet.Bet.Chips
+import com.example.roulette.player.Player.Username
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.scalatest.matchers.must.Matchers
@@ -33,7 +33,7 @@ object PlayerTest {
   val usernameJson = """"player-username""""
   val username: Username = Username("player-username")
   val player1: Player = Player(username)
-  val player1Json = """{"username":"player-username","balance":200,"betPlaced":0,"bets":[]}"""
+  val player1Json = """{"username":"player-username","balance":200,"chipsPlaced":0,"bets":null}"""
   val player2: Player = Player(username, balance = Chips(400))
-  val player2Json = """{"username":"player-username","balance":400,"betPlaced":0,"bets":[]}"""
+  val player2Json = """{"username":"player-username","balance":400,"chipsPlaced":0,"bets":null}"""
 }

@@ -1,7 +1,7 @@
-package com.example.roulette
+package com.example.roulette.request
 
-import com.example.roulette.Player.Username
-import com.example.roulette.RequestTest._
+import com.example.roulette.bet.Bet.{Chips, Red}
+import com.example.roulette.player.Player.Username
 import io.circe
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
@@ -9,6 +9,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class RequestTest extends AnyWordSpec with Matchers {
+  import RequestTest._
 
   "Request json validation" should {
     "encode and decode PlaceBet Request" in {
@@ -36,23 +37,22 @@ class RequestTest extends AnyWordSpec with Matchers {
 
 object RequestTest {
 
-  import Bet._
   import Request._
 
   val requestDecoder: String => Either[circe.Error, Request] = decode[Request]
 
   val username: Username = Username("player1")
-  val placeBet: Request = PlaceBet(username, Red(Chips(20)))
-  val placeBetJson = """{"username":"player1","bet":{"betAmount":20,"betType":"Red"},"requestType":"PlaceBet"}"""
+  val placeBet: Request = PlaceBet(Red(Chips(20)))
+  val placeBetJson = """{"bet":{"betAmount":20,"betType":"Red"},"requestType":"PlaceBet"}"""
 
-  val clearBets: Request = ClearBets(username)
-  val clearBetsJson = """{"username":"player1","requestType":"ClearBets"}"""
+  val clearBets: Request = ClearBets
+  val clearBetsJson = """{"requestType":"ClearBets"}"""
 
-  val registerPlayer: Request = RegisterPlayer(username)
-  val registerPlayerJson = """{"username":"player1","requestType":"RegisterPlayer"}"""
+  val registerPlayer: Request = RegisterPlayer
+  val registerPlayerJson = """{"requestType":"RegisterPlayer"}"""
 
-  val removePlayer: Request = RemovePlayer(username)
-  val removePlayerJson = """{"username":"player1","requestType":"RemovePlayer"}"""
+  val removePlayer: Request = RemovePlayer
+  val removePlayerJson = """{"requestType":"RemovePlayer"}"""
 
 
 }

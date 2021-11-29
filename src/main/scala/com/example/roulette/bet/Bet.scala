@@ -1,7 +1,7 @@
-package com.example.roulette
+package com.example.roulette.bet
 
 import cats.Semigroup
-import com.example.roulette.Bet.Chips
+import com.example.roulette.bet.Bet.Chips
 import io.circe.Codec
 import io.circe.generic.extras.semiauto.deriveUnwrappedCodec
 import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
@@ -20,8 +20,8 @@ import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
     final case class Red(betAmount: Chips) extends Bet
     final case class Black(betAmount: Chips) extends Bet
     final case class Split(positions: List[BetPosition], betAmount: Chips) extends Bet
-    final case class Street(position : BetPosition, betAmount: Chips) extends Bet
-    final case class SixLine(position: BetPosition, betAmount: Chips) extends Bet
+    final case class Street(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class SixLine(positions: List[BetPosition], betAmount: Chips) extends Bet
     final case class Corner(positions: List[BetPosition], betAmount: Chips) extends Bet
     final case class Trio(position: BetPosition, betAmount: Chips) extends Bet
     final case class Basket(betAmount: Chips) extends Bet
@@ -36,8 +36,13 @@ import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
 
     implicit def chipsSemigroup: Semigroup[Chips] = (x: Chips, y: Chips) => Chips(x.value + y.value)
 
+
     final case class Chips(value: Int) extends AnyVal
     object Chips {
       implicit val chipCodec: Codec[Chips] = deriveUnwrappedCodec[Chips]
+
+      implicit class ChipsOps(chips: Chips) {
+        def *(num: Int): Chips = Chips(chips.value * num)
+      }
     }
   }

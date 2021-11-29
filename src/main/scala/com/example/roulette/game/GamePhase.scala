@@ -1,4 +1,4 @@
-package com.example.roulette
+package com.example.roulette.game
 
 import io.circe.Codec
 import io.circe.generic.extras.semiauto.deriveEnumerationCodec

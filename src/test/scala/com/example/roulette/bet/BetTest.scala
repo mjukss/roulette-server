@@ -1,13 +1,13 @@
-package com.example.roulette
+package com.example.roulette.bet
 
-import com.example.roulette.Bet.{BetPosition, Chips}
-import com.example.roulette.BetTest.{bets, chips, chipsJson, jsonBets}
+import com.example.roulette.bet.Bet.{BetPosition, Chips}
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class BetTest extends AnyWordSpec with Matchers {
+  import BetTest._
   "Bet json validation" should {
     "parse bets into json strings" in {
      val betEncodingMatchJson = bets.zip(jsonBets).forall {
@@ -62,8 +62,8 @@ object BetTest {
   val red: Red = Red(Chips(40))
   val black: Black = Black(Chips(2))
   val split: Split = Split(List(BetPosition(1), BetPosition(2)), Chips(5))
-  val street: Street = Street(BetPosition(1), Chips(15))
-  val sixLine: SixLine = SixLine(BetPosition(1), Chips(15))
+  val street: Street = Street(List(BetPosition(1), BetPosition(2), BetPosition(4), BetPosition(5)), Chips(15))
+  val sixLine: SixLine = SixLine(Nil, Chips(15))
   val corner: Corner = Corner(List(BetPosition(1), BetPosition(2), BetPosition(4), BetPosition(5)), Chips(15))
   val trio: Trio = Trio(BetPosition(1), Chips(4))
   val basket: Basket = Basket(Chips(4))

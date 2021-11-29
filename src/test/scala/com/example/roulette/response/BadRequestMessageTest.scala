@@ -1,12 +1,12 @@
-package com.example.roulette
+package com.example.roulette.response
 
-import com.example.roulette.BadRequestMessageTest._
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class BadRequestMessageTest extends AnyWordSpec with Matchers {
+  import BadRequestMessageTest._
 
   "BadRequestMessage json validation" should {
     "encode and decode UsernameTaken" in {

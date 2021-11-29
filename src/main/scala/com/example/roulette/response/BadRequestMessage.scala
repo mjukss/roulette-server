@@ -1,4 +1,4 @@
-package com.example.roulette
+package com.example.roulette.response
 
 import io.circe.{Decoder, Encoder}
 
@@ -8,6 +8,7 @@ object BadRequestMessage {
   case object UsernameTaken extends BadRequestMessage
   case object UsernameDoesNotExist extends BadRequestMessage
   case object InsufficientFunds extends BadRequestMessage
+  case object CanNotPlaceBetInThisGamePhase extends BadRequestMessage
   case class CustomBadRequestMessage(message: String) extends BadRequestMessage
 
 

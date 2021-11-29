@@ -1,9 +1,14 @@
-package com.example.roulette
+package com.example.roulette.boot
 
 import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, IOApp}
-import com.example.roulette.Cache.{GameCache, PlayersCache, TimerCache}
-import com.example.roulette.Request.RequestOrError
+import com.example.roulette.game.GameCache
+import com.example.roulette.player.Player.Username
+import com.example.roulette.player.PlayersCache
+import com.example.roulette.request.Request.RequestOrError
+import com.example.roulette.request.RequestProcessor
+import com.example.roulette.response.Response
+import com.example.roulette.timer.{TimerCache, TimerProcessor}
 import fs2.Stream
 import fs2.concurrent.Topic
 
@@ -13,16 +18,16 @@ object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] = {
     for {
-      q <- Queue.unbounded[IO, Option[RequestOrError]]
+      q <- Queue.unbounded[IO, Option[(Username, RequestOrError)]]
       t <- Topic[IO, Response]
       playerCache <- PlayersCache[IO]()
-      timerCache <-  TimerCache[IO]()
+      timerCache <- TimerCache[IO]()
       gameCache <- GameCache[IO]()
 
       exitCode <- {
         val timerStream = Stream
           .awakeEvery[IO](1.seconds)
-          .evalMap(_ => Response.fromTimerNotification(timerCache,gameCache, playerCache.readAll))
+          .evalMap(_ => TimerProcessor.getResponse(timerCache, gameCache, playerCache))
           .through(t.publish)
 
         import RequestProcessor.executeRequest

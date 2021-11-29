@@ -1,8 +1,12 @@
-package com.example.roulette
+package com.example.roulette.response
 
-import com.example.roulette.BadRequestMessage.CustomBadRequestMessage
-import com.example.roulette.Bet.Chips
-import com.example.roulette.Response.{LuckyNumber, Timer}
+import com.example.roulette.bet.Bet
+import com.example.roulette.bet.Bet.Chips
+import com.example.roulette.game.GamePhase
+import com.example.roulette.player.PlayerTest
+import com.example.roulette.response.BadRequestMessage.CustomBadRequestMessage
+import com.example.roulette.response.Response.LuckyNumber
+import com.example.roulette.timer.Timer
 import io.circe
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
@@ -70,18 +74,18 @@ object ResponseTest {
   val bet: Bet = Bet.Red(Chips(40))
 
 
-  val betPlaced: Response = BetPlaced(bet)
-  val betPlacedJson = """{"bet":{"betAmount":40,"betType":"Red"},"responseType":"BetPlaced"}"""
+  val betPlaced: Response = BetPlaced(bet.betAmount, player1.username, None)
+  val betPlacedJson = """{"chipsPlaced":40,"username":"player-username","responseType":"BetPlaced"}"""
 
-  val betsCleared: Response = BetsCleared
-  val betsClearedJson = """{"responseType":"BetsCleared"}"""
+  val betsCleared: Response = BetsCleared(player1.username)
+  val betsClearedJson = """{"username":"player-username","responseType":"BetsCleared"}"""
 
 
-  val playerRegistered: Response = PlayerRegistered(player1, GamePhase.BetsOpen)
-  val playerRegisteredJson = """{"player":{"username":"player-username","balance":200,"betPlaced":0,"bets":[]},"gamePhase":"BetsOpen","responseType":"PlayerRegistered"}"""
+  val playerRegistered: Response = PlayerRegistered(player1, Some(GamePhase.BetsOpen), Some(Nil))
+  val playerRegisteredJson = """{"username":"player-username","gamePhase":"BetsOpen","players":[],"responseType":"PlayerRegistered"}"""
 
-  val playerRemoved: Response = PlayerRemoved(player1)
-  val playerRemovedJson = """{"player":{"username":"player-username","balance":200,"betPlaced":0,"bets":[]},"responseType":"PlayerRemoved"}"""
+  val playerRemoved: Response = PlayerRemoved(player1.username)
+  val playerRemovedJson = """{"username":"player-username","responseType":"PlayerRemoved"}"""
 
   val timer: Timer = Timer(0)
   val timerJson: String = "0"
@@ -89,14 +93,14 @@ object ResponseTest {
   val luckyNumber: LuckyNumber = LuckyNumber(7)
   val luckyNumberJson: String = "7"
 
-  val badRequestJson = """{"message":"error","responseType":"BadRequest"}"""
-  val badRequest: Response = BadRequest(CustomBadRequestMessage("error"))
+  val badRequestJson = """{"username":"player-username","message":"error","responseType":"BadRequest"}"""
+  val badRequest: Response = BadRequest(player1.username,CustomBadRequestMessage("error"))
 
 
   val timerNotification: Response = TimerNotification(timer)
   val timerNotificationJson = """{"secTillNextPhase":0,"responseType":"TimerNotification"}"""
 
-  val phaseChange: Response = PhaseChange(GamePhase.BetsOpen, Nil, Some(luckyNumber))
+  val phaseChange: Response = PhaseChanged(GamePhase.BetsOpen, Nil, Some(luckyNumber))
   val phaseChangeJson = """{"gamePhase":"BetsOpen","players":[],"luckyNumber":7,"responseType":"PhaseChange"}"""
 
 }

@@ -1,12 +1,12 @@
-package com.example.roulette
+package com.example.roulette.game
 
-import com.example.roulette.GamePhaseTest.{betsClosed, betsClosedJson, betsOpen, betsOpenJson}
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class GamePhaseTest extends AnyWordSpec with Matchers {
+  import GamePhaseTest._
 
   "GamePhase json validation" should {
     "encode and decode BetsOpen" in {
