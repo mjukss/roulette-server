@@ -9,8 +9,8 @@ import com.example.roulette.response.Response.TimerNotification
 
 object TimerProcessor {
   def getResponse[F[_] : Sync](timerCache: TimerCache[F],
-                                      gameCache: GameCache[F],
-                                      playersCache: PlayersCache[F]): F[Response] = {
+                                           gameCache: GameCache[F],
+                                           playersCache: PlayersCache[F]): F[Response] = {
     import cats.implicits.{toFlatMapOps, toFunctorOps}
     val timerAndGamePhase: F[(Timer, GamePhase)] = for {
       gamePhase <- gameCache.read

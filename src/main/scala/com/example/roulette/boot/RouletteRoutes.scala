@@ -1,7 +1,7 @@
 package com.example.roulette.boot
 
+import cats.Monad
 import cats.data.OptionT
-import cats.effect.Async
 import cats.effect.std.Queue
 import com.example.roulette.player.Player.Username
 import com.example.roulette.player.PlayersCache
@@ -18,7 +18,7 @@ import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.{Close, Text}
 
 object RouletteRoutes {
-  def gameRoutes[F[_] : Async](
+  def gameRoutes[F[_] : Monad](
                                 playersCache: PlayersCache[F],
                                 q: Queue[F, Option[(Username, RequestOrError)]],
                                 t: Topic[F, Response])(wsb: WebSocketBuilder2[F]): HttpRoutes[F] = {

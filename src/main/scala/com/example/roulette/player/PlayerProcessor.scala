@@ -17,7 +17,9 @@ object PlayerProcessor {
     } getOrElse key -> player
   }
 
-  def getPlayersAfterPhase[F[_] : Monad](gamePhase: GamePhase, luckyNumber: LuckyNumber, playersCache: PlayersCache[F]): F[Map[String, Player]] = {
+  def getPlayersAfterPhase[F[_] : Monad](gamePhase: GamePhase,
+                                         luckyNumber: LuckyNumber,
+                                         playersCache: PlayersCache[F]): F[Map[String, Player]] = {
     import cats.implicits.{toFlatMapOps, toFunctorOps}
 
     gamePhase match {

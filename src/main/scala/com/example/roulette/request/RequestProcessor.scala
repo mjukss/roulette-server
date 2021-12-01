@@ -1,18 +1,19 @@
 package com.example.roulette.request
 
 import cats.Monad
-import cats.data.{OptionT, Validated}
-import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxSemigroup, catsSyntaxValidatedId}
+import cats.data.OptionT
+import cats.data.Validated.{Invalid, Valid}
+import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxSemigroup}
 import com.example.roulette.bet.Bet
-import com.example.roulette.bet.Bet.Chips
-import com.example.roulette.game.GamePhase.BetsClosed
+import com.example.roulette.bet.BetValidator.validateBet
 import com.example.roulette.game.{GameCache, GamePhase}
 import com.example.roulette.player.Player.Username
 import com.example.roulette.player.{Player, PlayersCache}
 import com.example.roulette.request.Request.RequestOrError
 import com.example.roulette.response.BadRequestMessage._
+import com.example.roulette.response.Response
 import com.example.roulette.response.Response.{BadRequest, BetPlaced, BetsCleared, PlayerRegistered, PlayerRemoved}
-import com.example.roulette.response.{BadRequestMessage, Response}
+import cats.implicits.{toFlatMapOps, toFunctorOps}
 
 object RequestProcessor {
 
@@ -43,8 +44,6 @@ object RequestProcessor {
   }
 
   private def registerPlayer[F[_] : Monad](playersCache: PlayersCache[F], gameCache: GameCache[F], username: Username): F[Response] = {
-
-    import cats.implicits.{toFlatMapOps, toFunctorOps}
     def register(): F[Response] = for {
       gamePhase <- gameCache.read
       _ <- playersCache.updateOne(Player(username))
@@ -55,18 +54,15 @@ object RequestProcessor {
   }
 
   private def removePlayer[F[_] : Monad](username: Username, playersCache: PlayersCache[F]): F[Response] = {
-    import cats.implicits.toFunctorOps
     playersCache.removeOne(username).as(PlayerRemoved(username))
   }
 
 
   private def clearBets[F[_] : Monad](player: Player, playersCache: PlayersCache[F]): F[Response] = {
-    import cats.implicits.toFunctorOps
-    playersCache.updateOne(player.copy(
-      chipsPlaced = Chips(0),
-      balance = player.chipsPlaced |+| player.balance,
-      bets = None
-    )).as(BetsCleared(player.username))
+    val updatedPlayer = Player(player.username, player.chipsPlaced |+| player.balance)
+    for {
+      _ <- playersCache.updateOne(updatedPlayer)
+    } yield BetsCleared(player.username)
   }
 
   private def placeBet[F[_] : Monad](player: Player,
@@ -74,20 +70,13 @@ object RequestProcessor {
                                      username: Username,
                                      bet: Bet,
                                      playersCache: PlayersCache[F]): F[Response] = {
-    import cats.implicits.toFunctorOps
-    validateBet(gamePhase, bet, player) match {
-      case Validated.Valid(player) => playersCache.updateOne(player).as(BetPlaced(player.chipsPlaced, username, Some(bet)))
-      case Validated.Invalid(error) => (BadRequest(username, error): Response).pure[F]
-    }
-  }
+    validateBet(bet, player, gamePhase) match {
+      case Valid(updatedPlayer) => for {
+        _ <- playersCache.updateOne(updatedPlayer)
+        chipsPlaced = updatedPlayer.chipsPlaced
+      } yield BetPlaced(chipsPlaced, username, Some(bet))
 
-  private def validateBet(gamePhase: GamePhase, bet: Bet, player: Player): Validated[BadRequestMessage, Player] = {
-    if (player.balance.value < bet.betAmount.value) InsufficientFunds.invalid
-    else if (gamePhase == BetsClosed) CanNotPlaceBetInThisGamePhase.invalid
-    else player.copy(
-      chipsPlaced = Chips(player.chipsPlaced.value + bet.betAmount.value),
-      balance = Chips(player.balance.value - bet.betAmount.value),
-      bets = Some(player.bets.getOrElse(Nil) :+ bet)
-    ).valid
+      case Invalid(msg) => (BadRequest(username, msg) : Response).pure[F]
+    }
   }
 }

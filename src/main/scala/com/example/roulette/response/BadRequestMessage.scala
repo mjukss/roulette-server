@@ -9,6 +9,7 @@ object BadRequestMessage {
   case object UsernameDoesNotExist extends BadRequestMessage
   case object InsufficientFunds extends BadRequestMessage
   case object CanNotPlaceBetInThisGamePhase extends BadRequestMessage
+  case object InvalidBet extends BadRequestMessage
   case class CustomBadRequestMessage(message: String) extends BadRequestMessage
 
 

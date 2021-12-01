@@ -1,6 +1,6 @@
 package com.example.roulette.request
 
-import com.example.roulette.bet.Bet.{Chips, Red}
+import com.example.roulette.bet.Bet.{BetPosition, Chips, Straight}
 import com.example.roulette.player.Player.Username
 import io.circe
 import io.circe.parser.decode
@@ -13,6 +13,7 @@ class RequestTest extends AnyWordSpec with Matchers {
 
   "Request json validation" should {
     "encode and decode PlaceBet Request" in {
+      println(placeBet.asJson.noSpaces)
       requestDecoder(placeBetJson) mustBe Right(placeBet)
       placeBet.asJson.noSpaces mustBe placeBetJson
     }
@@ -42,8 +43,8 @@ object RequestTest {
   val requestDecoder: String => Either[circe.Error, Request] = decode[Request]
 
   val username: Username = Username("player1")
-  val placeBet: Request = PlaceBet(Red(Chips(20)))
-  val placeBetJson = """{"bet":{"betAmount":20,"betType":"Red"},"requestType":"PlaceBet"}"""
+  val placeBet: Request = PlaceBet(Straight(List(BetPosition(1)), Chips(20)))
+  val placeBetJson = """{"bet":{"positions":[1],"betAmount":20,"betType":"Straight"},"requestType":"PlaceBet"}"""
 
   val clearBets: Request = ClearBets
   val clearBetsJson = """{"requestType":"ClearBets"}"""

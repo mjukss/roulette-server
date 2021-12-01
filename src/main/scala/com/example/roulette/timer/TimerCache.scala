@@ -1,6 +1,7 @@
 package com.example.roulette.timer
 
-import cats.effect.{Async, Ref}
+import cats.Applicative
+import cats.effect.Ref
 import cats.implicits.toFunctorOps
 
 class TimerCache[F[_]](data: Ref[F, Timer]) {
@@ -10,5 +11,5 @@ class TimerCache[F[_]](data: Ref[F, Timer]) {
   }
 
   object TimerCache {
-    def apply[F[_] : Async](): F[TimerCache[F]] = Ref.of(Timer(15)).map(new TimerCache(_))
+    def apply[F[_] : Ref.Make : Applicative](): F[TimerCache[F]] = Ref.of(Timer(15)).map(new TimerCache(_))
   }

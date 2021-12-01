@@ -1,30 +1,31 @@
 package com.example.roulette.bet
 
 import cats.Semigroup
-import com.example.roulette.bet.Bet.Chips
+import com.example.roulette.bet.Bet.{BetPosition, Chips}
 import io.circe.Codec
 import io.circe.generic.extras.semiauto.deriveUnwrappedCodec
 import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
 
 @ConfiguredJsonCodec sealed trait Bet {
   val betAmount: Chips
+  val positions: List[BetPosition]
 }
   object Bet {
-    final case class Straight(position: BetPosition, betAmount: Chips) extends Bet
-    final case class Odd(betAmount: Chips) extends Bet
-    final case class Even(betAmount: Chips) extends Bet
-    final case class High(betAmount: Chips) extends Bet
-    final case class Low(betAmount: Chips) extends Bet
-    final case class Row(position: BetPosition, betAmount: Chips) extends Bet
-    final case class Dozen(position: BetPosition, betAmount: Chips) extends Bet
-    final case class Red(betAmount: Chips) extends Bet
-    final case class Black(betAmount: Chips) extends Bet
+    final case class Straight(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Odd(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Even(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class High(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Low(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Row(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Dozen(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Red(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Black(positions: List[BetPosition], betAmount: Chips) extends Bet
     final case class Split(positions: List[BetPosition], betAmount: Chips) extends Bet
     final case class Street(positions: List[BetPosition], betAmount: Chips) extends Bet
     final case class SixLine(positions: List[BetPosition], betAmount: Chips) extends Bet
     final case class Corner(positions: List[BetPosition], betAmount: Chips) extends Bet
-    final case class Trio(position: BetPosition, betAmount: Chips) extends Bet
-    final case class Basket(betAmount: Chips) extends Bet
+    final case class Trio(positions: List[BetPosition], betAmount: Chips) extends Bet
+    final case class Basket(positions: List[BetPosition], betAmount: Chips)extends Bet
 
     implicit val genDevConfig: Configuration =
       Configuration.default.withDiscriminator("betType")
@@ -43,6 +44,7 @@ import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
 
       implicit class ChipsOps(chips: Chips) {
         def *(num: Int): Chips = Chips(chips.value * num)
+        def -(chips2: Chips): Chips = Chips(chips.value - chips2.value)
       }
     }
   }
