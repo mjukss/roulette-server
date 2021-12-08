@@ -1,6 +1,6 @@
 package com.example.roulette.bet
 
-object BetExtensions extends App{
+object BetExtensions {
   import Bet._
   implicit class BetOps(bet: Bet) {
     val PAYOUT: Int = bet match {
@@ -56,7 +56,4 @@ object BetExtensions extends App{
       r1.zip(r2).map(flattenTuple2)
     }
   }
-
-  println(Split(List(BetPosition(1)), Chips(1)).COMBINATION)
-
 }

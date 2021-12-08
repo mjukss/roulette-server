@@ -9,6 +9,7 @@ import com.example.roulette.request.Request.RequestOrError
 import com.example.roulette.request.RequestProcessor
 import com.example.roulette.response.Response
 import com.example.roulette.timer.{TimerCache, TimerProcessor}
+import com.example.roulette.wheel.WheelRange
 import fs2.Stream
 import fs2.concurrent.Topic
 
@@ -27,7 +28,13 @@ object Main extends IOApp {
       exitCode <- {
         val timerStream = Stream
           .awakeEvery[IO](1.seconds)
-          .evalMap(_ => TimerProcessor.getResponse(timerCache, gameCache, playerCache))
+          .evalMap { _ =>
+            TimerProcessor.getResponse(
+              WheelRange.fromCommandLineArgs(args),
+              timerCache,
+              gameCache,
+              playerCache)
+          }
           .through(t.publish)
 
         import RequestProcessor.executeRequest

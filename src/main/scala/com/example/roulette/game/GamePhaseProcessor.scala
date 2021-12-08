@@ -8,9 +8,11 @@ import com.example.roulette.player.PlayersCache
 import com.example.roulette.response.Response
 import com.example.roulette.response.Response.{LuckyNumber, PhaseChanged}
 import com.example.roulette.timer.TimerCache
+import com.example.roulette.wheel.WheelRange
 
 object GamePhaseProcessor {
-  def getPhaseChangedResponse[F[_] : Sync](timerCache: TimerCache[F],
+  def getPhaseChangedResponse[F[_] : Sync](wheelRange: WheelRange,
+                                           timerCache: TimerCache[F],
                                            gameCache: GameCache[F],
                                            playersCache: PlayersCache[F]): F[Response] = {
     import cats.implicits._
@@ -18,7 +20,7 @@ object GamePhaseProcessor {
       _ <- timerCache.resetTimer()
       gamePhase <- gameCache.changePhaseAndGet()
       randomNumber <- Random.scalaUtilRandom[F]
-      num <- randomNumber.betweenInt(0, 37)
+      num <- randomNumber.betweenInt(wheelRange.from, wheelRange.to)
       luckyNumber = LuckyNumber(num)
       players <- getPlayersAfterPhase(gamePhase, luckyNumber, playersCache)
       luckyNumberOption = Option.when(gamePhase == BetsClosed)(luckyNumber)
