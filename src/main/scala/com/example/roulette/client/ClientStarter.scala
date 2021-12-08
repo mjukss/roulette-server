@@ -13,7 +13,7 @@ import java.net.http.HttpClient
 
 object ClientStarter {
 
-  private def buildWSClient(client: ClientConnection, wsClient: WSClient[IO]) = {
+  private def buildWSClient(client: PlayerConnection, wsClient: WSClient[IO]) = {
     val domain = uri"ws://localhost:8080/"
     val uri = Uri.fromString(s"$domain${client.username.value}").getOrElse(domain)
 
@@ -34,7 +34,7 @@ object ClientStarter {
       }
   }
 
-  def connectToServer(clients: List[ClientConnection]): IO[List[Response]] = {
+  def connectToServer(clients: List[PlayerConnection]): IO[List[Response]] = {
     val webSocket = Resource.eval(IO(HttpClient.newHttpClient()))
       .flatMap(JdkWSClient[IO](_))
 

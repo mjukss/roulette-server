@@ -1,7 +1,7 @@
 package com.example.roulette.integration
 
 import cats.effect.unsafe.implicits.global
-import com.example.roulette.client.ClientConnection
+import com.example.roulette.client.PlayerConnection
 import com.example.roulette.client.ClientStarter.connectToServer
 import com.example.roulette.integration.RegisterPlayerTest._
 import com.example.roulette.player.Player
@@ -56,26 +56,26 @@ object RegisterPlayerTest {
   val player2: Player = Player(username2)
 
 
-  val clientConnection: ClientConnection = ClientConnection(
+  val playerConnection: PlayerConnection = PlayerConnection(
     username = username1,
     requests = List(RegisterPlayer),
     msgLimit = 3,
   )
 
 
-  def logs: List[Response] = connectToServer(List(clientConnection)).unsafeRunSync()
+  def logs: List[Response] = connectToServer(List(playerConnection)).unsafeRunSync()
 
   def logs2: List[Response] = connectToServer(
     List(
-      clientConnection.copy(msgLimit = 0, stayConnected = 3.seconds),
-      clientConnection.copy(msgLimit = 1, delay = 2.seconds),
+      playerConnection.copy(msgLimit = 0, stayConnected = 3.seconds),
+      playerConnection.copy(msgLimit = 1, delay = 2.seconds),
     )
   ).unsafeRunSync()
 
   def logs3: List[Response] = connectToServer(
     List(
-      clientConnection.copy(msgLimit = 0, stayConnected = 2.seconds),
-      clientConnection.copy( username= username2, msgLimit = 1, delay = 1.seconds),
+      playerConnection.copy(msgLimit = 0, stayConnected = 2.seconds),
+      playerConnection.copy( username= username2, msgLimit = 1, delay = 1.seconds),
     )
   ).unsafeRunSync()
 

@@ -1,7 +1,7 @@
 package com.example.roulette.integration
 
 import cats.effect.unsafe.implicits.global
-import com.example.roulette.client.ClientConnection
+import com.example.roulette.client.PlayerConnection
 import com.example.roulette.client.ClientStarter.connectToServer
 import com.example.roulette.game.GamePhase.{BetsClosed, BetsOpen}
 import com.example.roulette.integration.PhaseChangeTest.logs
@@ -35,11 +35,11 @@ object PhaseChangeTest extends AnyWordSpec with Matchers {
   val username: Username = Username("Player")
   val player: Player = Player(username)
 
-  val client: ClientConnection = ClientConnection(
+  val playerConnection: PlayerConnection = PlayerConnection(
     username = username,
     requests = List(RegisterPlayer),
     msgLimit = 35,
   )
 
-  def logs: List[Response] = connectToServer(List(client)).unsafeRunSync()
+  def logs: List[Response] = connectToServer(List(playerConnection)).unsafeRunSync()
 }
