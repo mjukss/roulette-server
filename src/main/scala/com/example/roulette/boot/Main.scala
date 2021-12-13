@@ -3,10 +3,7 @@ package com.example.roulette.boot
 import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, IOApp}
 import com.example.roulette.game.GameCache
-import com.example.roulette.player.Player.Username
 import com.example.roulette.player.PlayersCache
-import com.example.roulette.request.Request.RequestOrError
-import com.example.roulette.request.RequestProcessor
 import com.example.roulette.response.Response
 import com.example.roulette.timer.{TimerCache, TimerProcessor}
 import com.example.roulette.wheel.WheelRange
@@ -19,7 +16,7 @@ object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] = {
     for {
-      q <- Queue.unbounded[IO, Option[(Username, RequestOrError)]]
+      q <- Queue.unbounded[IO, Option[Response]]
       t <- Topic[IO, Response]
       playerCache <- PlayersCache[IO]()
       timerCache <- TimerCache[IO]()
@@ -37,13 +34,11 @@ object Main extends IOApp {
           }
           .through(t.publish)
 
-        import RequestProcessor.executeRequest
         val rawRequestStream = Stream
           .fromQueueNoneTerminated(q)
-          .evalMap(executeRequest(_, playerCache, gameCache))
           .through(t.publish)
 
-        Stream(rawRequestStream, RouletteServer.stream(playerCache, q, t), timerStream)
+        Stream(rawRequestStream, RouletteServer.stream(playerCache, gameCache, q, t), timerStream)
           .parJoinUnbounded
           .compile
           .drain

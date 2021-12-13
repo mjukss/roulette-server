@@ -1,7 +1,7 @@
 package com.example.roulette.request
 
 import com.example.roulette.bet.Bet
-import io.circe
+import com.example.roulette.player.Player.{Password, Username}
 import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
 import io.circe.parser.decode
 
@@ -9,14 +9,17 @@ import io.circe.parser.decode
 object Request {
   final case class PlaceBet(bet: Bet) extends Request
   final case object ClearBets extends Request
-  final case object RegisterPlayer extends Request
-  final case object RemovePlayer extends Request
+  final case class JoinGame(username: Username, password: Password) extends Request
+  final case object ExitGame extends Request
+  final case class InvalidRequest(errorMessage: String) extends Request
+  @ConfiguredJsonCodec final case class RegisterPlayer(username: Username, password: Password) extends Request
 
   implicit val genDevConfig: Configuration =
     Configuration.default.withDiscriminator("requestType")
 
-  type RequestOrError = Either[circe.Error, Request]
-
-  def fromString(string: String): RequestOrError = decode[Request](string)
+  def fromString(string: String): Request = decode[Request](string) match {
+    case Left(error) =>  InvalidRequest(error.getMessage)
+    case Right(request) => request
+  }
 
 }

@@ -1,15 +1,15 @@
 package com.example.roulette.integration
 
 import cats.effect.unsafe.implicits.global
-import com.example.roulette.client.PlayerConnection
-import com.example.roulette.client.ClientStarter.connectToServer
+import com.example.roulette.integration.setup.ClientStarter.connectToServer
 import com.example.roulette.integration.RegisterPlayerTest._
+import com.example.roulette.integration.setup.PlayerConnection
 import com.example.roulette.player.Player
-import com.example.roulette.player.Player.Username
-import com.example.roulette.request.Request.RegisterPlayer
+import com.example.roulette.player.Player.{Password, Username}
+import com.example.roulette.request.Request.JoinGame
 import com.example.roulette.response.BadRequestMessage.UsernameTaken
 import com.example.roulette.response.Response
-import com.example.roulette.response.Response.{BadRequest, PlayerRegistered}
+import com.example.roulette.response.Response.{BadRequest, PlayerJoinedGame}
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -20,10 +20,10 @@ class RegisterPlayerTest extends AnyWordSpec with Matchers {
 
   "Register player response" should {
     "return PlayerRegistered with list of players in game and game phase" in {
-      val responseOption = logs.find(_.isInstanceOf[PlayerRegistered])
+      val responseOption = logs.find(_.isInstanceOf[PlayerJoinedGame])
 
       inside(responseOption) {
-        case Some(PlayerRegistered(player, Some(_), Some(players))) =>
+        case Some(PlayerJoinedGame(player, Some(_), Some(players))) =>
           player mustBe player1
           players.contains(player1) mustBe true
       }
@@ -36,10 +36,10 @@ class RegisterPlayerTest extends AnyWordSpec with Matchers {
       }
     }
     "return players that are already in game (including myself)" in {
-      val responseOption = logs3.find(_.isInstanceOf[PlayerRegistered])
+      val responseOption = logs3.find(_.isInstanceOf[PlayerJoinedGame])
 
       inside(responseOption) {
-        case Some(PlayerRegistered(player, Some(_), Some(players))) =>
+        case Some(PlayerJoinedGame(player, Some(_), Some(players))) =>
           player mustBe player2
           players.contains(player1) mustBe true
           players.contains(player2) mustBe true
@@ -52,13 +52,13 @@ object RegisterPlayerTest {
 
   val username1: Username = Username("Player1")
   val username2: Username = Username("Player2")
-  val player1: Player = Player(username1)
-  val player2: Player = Player(username2)
+  val player1: Player = Player(username1, Password("12345"))
+  val player2: Player = Player(username2, Password("12345"))
 
 
-  val playerConnection: PlayerConnection = PlayerConnection(
+  val playerConnection: PlayerConnection = setup.PlayerConnection(
     username = username1,
-    requests = List(RegisterPlayer),
+    requests = List(JoinGame(username2, Password("12345"))),
     msgLimit = 3,
   )
 
@@ -75,7 +75,7 @@ object RegisterPlayerTest {
   def logs3: List[Response] = connectToServer(
     List(
       playerConnection.copy(msgLimit = 0, stayConnected = 2.seconds),
-      playerConnection.copy( username= username2, msgLimit = 1, delay = 1.seconds),
+      playerConnection.copy(username = username2, msgLimit = 1, delay = 1.seconds),
     )
   ).unsafeRunSync()
 

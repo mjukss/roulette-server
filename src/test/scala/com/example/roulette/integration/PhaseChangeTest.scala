@@ -1,13 +1,13 @@
 package com.example.roulette.integration
 
 import cats.effect.unsafe.implicits.global
-import com.example.roulette.client.PlayerConnection
-import com.example.roulette.client.ClientStarter.connectToServer
 import com.example.roulette.game.GamePhase.{BetsClosed, BetsOpen}
 import com.example.roulette.integration.PhaseChangeTest.logs
+import com.example.roulette.integration.setup.ClientStarter.connectToServer
+import com.example.roulette.integration.setup.PlayerConnection
 import com.example.roulette.player.Player
-import com.example.roulette.player.Player.Username
-import com.example.roulette.request.Request.RegisterPlayer
+import com.example.roulette.player.Player.{Password, Username}
+import com.example.roulette.request.Request.JoinGame
 import com.example.roulette.response.Response
 import com.example.roulette.response.Response.PhaseChanged
 import org.scalatest.Inside.inside
@@ -33,11 +33,11 @@ class PhaseChangeTest extends AnyWordSpec with Matchers {
 
 object PhaseChangeTest extends AnyWordSpec with Matchers {
   val username: Username = Username("Player")
-  val player: Player = Player(username)
+  val player: Player = Player(username, Password("12345"))
 
-  val playerConnection: PlayerConnection = PlayerConnection(
+  val playerConnection: PlayerConnection = setup.PlayerConnection(
     username = username,
-    requests = List(RegisterPlayer),
+    requests = List(JoinGame(username, Password("12345"))),
     msgLimit = 35,
   )
 
