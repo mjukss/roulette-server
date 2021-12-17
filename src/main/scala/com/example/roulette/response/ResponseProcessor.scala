@@ -5,7 +5,6 @@ import cats.data.OptionT
 import cats.implicits.toFunctorOps
 import com.example.roulette.player.Player.Username
 import com.example.roulette.player.{PlayerUsernameCache, PlayersCache}
-import com.example.roulette.response.BadRequestMessage.UsernameTaken
 import io.circe.syntax.EncoderOps
 import org.http4s.websocket.WebSocketFrame.Text
 
@@ -31,8 +30,6 @@ object ResponseProcessor {
 
 
   val toWebSocketText: Username => PartialFunction[Response, Text] = username => {
-    case res@BadRequest(resUsername, msg)
-      if (resUsername == username) && msg != UsernameTaken => textFromResponse(res)
     case res@BetPlaced(_, resUsername, _) if resUsername != username => textFromResponse(res.copy(bet = None))
     case res@PlayerJoinedGame(player, _, _)
       if player.username != username => textFromResponse(res.copy(gamePhase = None, players = None))

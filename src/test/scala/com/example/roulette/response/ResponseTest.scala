@@ -88,7 +88,7 @@ object ResponseTest {
   val luckyNumberJson: String = "7"
 
   val badRequestJson = """{"username":"player-username","message":"error","responseType":"BadRequest"}"""
-  val badRequest: Response = BadRequest(player1.username, CustomBadRequestMessage("error"))
+  val badRequest: Response = BadRequest(CustomBadRequestMessage("error"))
 
 
   val timerNotification: Response = TimerNotification(timer)

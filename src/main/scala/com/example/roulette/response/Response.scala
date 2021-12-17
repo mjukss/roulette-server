@@ -18,7 +18,7 @@ object Response {
   final case class BetsCleared(username: Username) extends Response
   final case class PlayerJoinedGame(player: Player, gamePhase: Option[GamePhase], players: Option[List[Player]]) extends Response
   final case class PlayerLeftGame(username: Username) extends Response
-  final case class BadRequest(username: Username, message: BadRequestMessage) extends Response
+  final case class BadRequest(message: BadRequestMessage) extends Response
   final case class TimerNotification(secTillNextPhase: Timer) extends Response
   final case class PhaseChanged(gamePhase: GamePhase, players: List[Player], luckyNumber: Option[LuckyNumber]) extends Response
   @ConfiguredJsonCodec final case class PlayerSuccessfullyRegistered(username: Username) extends Response

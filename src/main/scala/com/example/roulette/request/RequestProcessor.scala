@@ -9,135 +9,114 @@ import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxSemigroup, toFlatMapOp
 import com.example.roulette.bet.Bet
 import com.example.roulette.bet.BetValidator.validateBet
 import com.example.roulette.game.{GameCache, GamePhase}
-import com.example.roulette.player.Player.{Password, Username}
 import com.example.roulette.player.PlayerProcessor.getActivePlayers
 import com.example.roulette.player.{Player, PlayerUsernameCache, PlayersCache}
-import com.example.roulette.request.Request.{ExitGame, JoinGame, RegisterPlayer}
+import com.example.roulette.request.Request._
 import com.example.roulette.response.BadRequestMessage._
 import com.example.roulette.response.Response
-import com.example.roulette.response.Response.{BadRequest, BetPlaced, BetsCleared, PlayerJoinedGame, PlayerLeftGame, PlayerSuccessfullyRegistered}
+import com.example.roulette.response.Response._
 import fs2.Stream
+import fs2.concurrent.Topic
+import io.circe.syntax.EncoderOps
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.{Close, Text}
 
 object RequestProcessor {
 
-  def processRegisterRequest[F[_] : Monad](
-                                            registerPlayerReq: RegisterPlayer,
-                                            playersCache: PlayersCache[F]
-                                          ): F[Option[PlayerSuccessfullyRegistered]] = {
-    OptionT(playersCache.readOne(registerPlayerReq.username))
-      .as(None)
-      .getOrElseF {
-        playersCache
-          .updateOne(Player(registerPlayerReq.username, registerPlayerReq.password))
-          .as(Option(PlayerSuccessfullyRegistered(registerPlayerReq.username)))
-      }
-  }
-
   def processFromClient[F[_] : Concurrent](
+                                            privateTopic: Topic[F, WebSocketFrame],
                                             stream: Stream[F, WebSocketFrame],
                                             playersCache: PlayersCache[F],
                                             gameCache: GameCache[F],
                                             usernameCache: PlayerUsernameCache[F],
                                             queue: Queue[F, Option[Response]]
                                           ): Stream[F, Unit] = {
-    webSocketFrameToRequest(stream).evalMapFilter {
-      case request@JoinGame(username, password) => (for {
-        player <- OptionT(playersCache.readOne(username))
-        if player.password == password
-        _ <- OptionT.liftF(usernameCache.updateAndGet(username))
-      } yield (player.username, request: Request)).value
 
-      case request => for {
-        username <- usernameCache.read
-      } yield username.map((_, request))
-    }
-      .evalMap(req => RequestProcessor.executeRequest(req, playersCache, gameCache))
-      .enqueueNoneTerminated(queue)
-  }
+    val playerOptionT = OptionT(usernameCache.read).flatMap(username => OptionT(playersCache.readOne(username)))
+    val requestStream = webSocketFrameToRequest(stream)
 
-  private def webSocketFrameToRequest[F[_]](stream: Stream[F, WebSocketFrame]): Stream[F, Request] = {
-    stream.collect {
-      case Text(text, _) => Request.fromString(text)
-      case Close(_) => ExitGame
-    }
-  }
-
-  private def executeRequest[F[_] : Monad](usernameAndRequest: (Username, Request),
-                                           playersCache: PlayersCache[F],
-                                           gameCache: GameCache[F]): F[Response] = {
-    val (username, request) = usernameAndRequest
-    import Request._
-
-    val getResponseFromRegisteredPlayers: (Player, GamePhase) => PartialFunction[Request, F[Response]] = (player, gamePhase) => {
-      case PlaceBet(bet) => placeBet(player, gamePhase, username, bet, playersCache)
-      case ClearBets => clearBets(player, playersCache)
-      case ExitGame => exitGame(player, playersCache)
-      case JoinGame(_, _) => joinGame(player, playersCache, gameCache)
+    def handleRegisteredUser(request: Request, phase: GamePhase) = {
+      playerOptionT.flatMap { player =>
+        OptionT {
+          request match {
+            case PlaceBet(bet) => placeBet(privateTopic, player, phase, bet, playersCache)
+            case ClearBets => clearBets(player, playersCache).map(Option.apply)
+            case ExitGame => exitGame(player, playersCache).map(Option.apply)
+            case _: RegisterPlayer => for {
+              _ <- sendPrivateResponse(privateTopic, BadRequest(CustomBadRequestMessage("Invalid request")))
+            } yield Option.empty[Response]
+            case _ => Option.empty[Response].pure[F]
+          }
+        }
+      }.value
     }
 
-    request match {
-      case InvalidRequest(errorMessage) =>
-        (BadRequest(username, CustomBadRequestMessage(errorMessage)): Response).pure[F]
-      case request => (for {
-        user <- OptionT(playersCache.readOne(username))
-        gamePhase <- OptionT.liftF(gameCache.read)
-        response <- OptionT.liftF(getResponseFromRegisteredPlayers(user, gamePhase)(request))
-      } yield response) getOrElse BadRequest(username, UsernameDoesNotExist)
+    requestStream.evalMapFilter { request =>
+      gameCache.read.flatMap { phase =>
+        request match {
+          case request: JoinGame => handleJoinGameReq(privateTopic, phase, request, usernameCache, playersCache)
+          case InvalidRequest(errorMessage) =>
+            for {
+              _ <- sendPrivateResponse(privateTopic, BadRequest(CustomBadRequestMessage(errorMessage)))
+            } yield Option.empty[Response]
 
-    }
-  }
-
-  def registerPlayer[F[_] : Monad](username: Username, password: Password, playersCache: PlayersCache[F]): F[Response] = {
-    for {
-      players <- playersCache.readAll
-      response <- {
-        val newPlayer = Player(username, password)
-
-        if (players.isDefinedAt(username.value)) BadRequest(username, UsernameTaken).pure[F]
-        else playersCache.updateOne(newPlayer).as(PlayerSuccessfullyRegistered(username))
+          case request => handleRegisteredUser(request, phase)
+        }
       }
-    } yield response
+    }.enqueueNoneTerminated(queue)
   }
 
-  private def joinGame[F[_] : Monad](player: Player, playersCache: PlayersCache[F], gameCache: GameCache[F]): F[Response] = {
-    for {
-      gamePhase <- gameCache.read
-      _ <- playersCache.updateOne(player.copy(isOnline = true))
-      players <- playersCache.readAll
-    } yield PlayerJoinedGame(player, Some(gamePhase), Some(getActivePlayers(players)))
+  private def handleJoinGameReq[F[_] : Monad](privateTopic: Topic[F, WebSocketFrame], gamePhase: GamePhase, request: JoinGame, usernameCache: PlayerUsernameCache[F], playersCache: PlayersCache[F]): F[Option[Response]] = {
+    playersCache.readOne(request.username).flatMap {
+      case Some(player) if player.password != request.password => sendPrivateResponse(privateTopic, BadRequest(WrongPassword)).as(Option.empty[Response])
+      case None => sendPrivateResponse(privateTopic, BadRequest(UsernameDoesNotExist)).as(Option.empty[Response])
+      case Some(player) if player.isOnline => sendPrivateResponse(privateTopic, BadRequest(UserAlreadyPlaying)).as(Option.empty[Response])
+      case Some(player) => usernameCache.updateAndGet(request.username).flatMap(_ => joinGame(player, playersCache, gamePhase).map(Option.apply))
+    }
   }
 
+  def processRegisterRequest[F[_] : Monad](
+                                            registerPlayerReq: RegisterPlayer,
+                                            playersCache: PlayersCache[F]
+                                          ): F[Option[PlayerSuccessfullyRegistered]] =
+    OptionT(playersCache.readOne(registerPlayerReq.username)).as(None).getOrElseF {
+      playersCache
+        .updateOne(Player(registerPlayerReq.username, registerPlayerReq.password))
+        .as(Option(PlayerSuccessfullyRegistered(registerPlayerReq.username)))
+    }
+
+  private def joinGame[F[_] : Monad](player: Player, playersCache: PlayersCache[F], gamePhase: GamePhase): F[Response] = for {
+    _ <- playersCache.updateOne(player.copy(isOnline = true))
+    players <- playersCache.readAll
+  } yield PlayerJoinedGame(player, Some(gamePhase), Some(getActivePlayers(players)))
 
   private def clearBets[F[_] : Monad](player: Player, playersCache: PlayersCache[F]): F[Response] = {
-    val updatedPlayer = player.copy(
-      balance = player.chipsPlaced |+| player.balance
-    )
+    val updatedPlayer = player.copy(balance = player.chipsPlaced |+| player.balance)
     for {
       _ <- playersCache.updateOne(updatedPlayer)
     } yield BetsCleared(player.username)
   }
 
-  private def exitGame[F[_] : Monad](player: Player, playersCache: PlayersCache[F]): F[Response] = {
-    val updatedPlayer = player.copy(isOnline = false)
-    for {
-      _ <- playersCache.updateOne(updatedPlayer)
-    } yield PlayerLeftGame(player.username)
-  }
+  private def exitGame[F[_] : Monad](player: Player, playersCache: PlayersCache[F]): F[Response] = for {
+    _ <- playersCache.updateOne(player.copy(isOnline = false))
+  } yield PlayerLeftGame(player.username)
 
-  private def placeBet[F[_] : Monad](player: Player,
-                                     gamePhase: GamePhase,
-                                     username: Username,
-                                     bet: Bet,
-                                     playersCache: PlayersCache[F]): F[Response] = {
+  private def placeBet[F[_] : Monad](privateTopic: Topic[F, WebSocketFrame], player: Player, gamePhase: GamePhase, bet: Bet, playersCache: PlayersCache[F]): F[Option[Response]] =
     validateBet(bet, player, gamePhase) match {
-      case Valid(updatedPlayer) => for {
-        _ <- playersCache.updateOne(updatedPlayer)
-        chipsPlaced = updatedPlayer.chipsPlaced
-      } yield BetPlaced(chipsPlaced, username, Some(bet))
+      case Valid(updatedPlayer@Player(username, _, _, _, chipsPlaced, _)) =>
+        playersCache.updateOne(updatedPlayer).as(Option(BetPlaced(chipsPlaced, username, Some(bet))))
+      case Invalid(msg) => sendPrivateResponse(privateTopic, BadRequest(msg)).as(Option.empty[Response])
+    }
 
-      case Invalid(msg) => (BadRequest(username, msg): Response).pure[F]
+  private def sendPrivateResponse[F[_]](privateTopic: Topic[F, WebSocketFrame], response: Response) =
+    privateTopic.publish1(responseToWebSocketText(response))
+
+  private def responseToWebSocketText(response: Response) = Text(response.asJson.deepDropNullValues.noSpaces)
+
+  private def webSocketFrameToRequest[F[_]](stream: Stream[F, WebSocketFrame]): Stream[F, Request] = {
+    stream.collect {
+      case Text(text, _) => Request.fromString(text)
+      case Close(_) => ExitGame
     }
   }
 }

@@ -30,8 +30,7 @@ class RegisterPlayerTest extends AnyWordSpec with Matchers {
     }
     "return UsernameTaken when user already registered" in {
       inside(logs2.headOption) {
-        case Some(BadRequest(username, message)) =>
-          username mustBe username1
+        case Some(BadRequest(message)) =>
           message mustBe UsernameTaken
       }
     }
