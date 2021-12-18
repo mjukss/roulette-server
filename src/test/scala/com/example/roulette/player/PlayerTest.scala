@@ -13,14 +13,11 @@ class PlayerTest extends AnyWordSpec with Matchers {
 
   "Player json validation" should {
     "encode and decode Player" in {
-      player1.asJson.noSpaces mustBe player1Json
-      player2.asJson.noSpaces mustBe player2Json
+      player1.asJson.noSpaces mustBe player1JsonResponse
+      player2.asJson.noSpaces mustBe player2JsonResponse
 
       decode[Player](player1Json) mustBe Right(player1)
       decode[Player](player2Json) mustBe Right(player2)
-    }
-    "use left channel when invalid json string" in {
-      decode[Player]("""{"username":"player-username"}""").isLeft mustBe true
     }
     "encode and decode Username" in {
       username.asJson.noSpaces mustBe usernameJson
@@ -34,7 +31,9 @@ object PlayerTest {
   val usernameJson = """"player-username""""
   val username: Username = Username("player-username")
   val player1: Player = Player(username, Password("12345"))
-  val player1Json = """{"username":"player-username","balance":200,"chipsPlaced":0,"bets":null}"""
+  val player1Json = """{"username":"player-username","password":"12345","isOnline":false,"balance":200,"chipsPlaced":0}"""
+  val player1JsonResponse = """{"username":"player-username","balance":200,"chipsPlaced":0,"bets":null}"""
   val player2: Player = Player(username, Password("12345"), balance = Chips(400))
-  val player2Json = """{"username":"player-username","balance":400,"chipsPlaced":0,"bets":null}"""
+  val player2JsonResponse = """{"username":"player-username","balance":400,"chipsPlaced":0,"bets":null}"""
+  val player2Json = """{"username":"player-username","password":"12345","isOnline":false,"balance":400,"chipsPlaced":0,"bets":null}"""
 }
