@@ -5,6 +5,8 @@ val LogbackVersion = "1.2.6"
 val MunitCatsEffectVersion = "1.0.6"
 val ScalaTestVersion = "3.2.10"
 
+enablePlugins(JavaAppPackaging)
+
 
 lazy val root = (project in file("."))
   .settings(
