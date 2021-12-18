@@ -9,8 +9,10 @@ import com.example.roulette.response.Response
 import fs2.Stream
 import fs2.concurrent.Topic
 import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.server.middleware.CORS
 
 object RouletteServer {
+
   def stream[F[_] : Async](playersCache: PlayersCache[F],
                            gameCache: GameCache[F],
                            queue: Queue[F, Option[Response]],
@@ -18,7 +20,7 @@ object RouletteServer {
     val port = sys.env.getOrElse("PORT", "8080").toInt
     BlazeServerBuilder[F]
       .bindHttp(port, "0.0.0.0")
-      .withHttpWebSocketApp(gameRoutes(gameCache, playersCache, queue, t)(_).orNotFound)
+      .withHttpWebSocketApp(wsb => CORS.policy.withAllowOriginAll(gameRoutes(gameCache, playersCache, queue, t)(wsb).orNotFound))
       .serve
   }
 }
