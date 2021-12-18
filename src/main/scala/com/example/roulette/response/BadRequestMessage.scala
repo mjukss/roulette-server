@@ -6,6 +6,9 @@ sealed trait BadRequestMessage
 
 object BadRequestMessage {
   case object UsernameTaken extends BadRequestMessage
+  case object RequestIsInvalid extends BadRequestMessage
+  case object WrongPassword extends BadRequestMessage
+  case object UserAlreadyPlaying extends BadRequestMessage
   case object UsernameDoesNotExist extends BadRequestMessage
   case object InsufficientFunds extends BadRequestMessage
   case object CanNotPlaceBetInThisGamePhase extends BadRequestMessage

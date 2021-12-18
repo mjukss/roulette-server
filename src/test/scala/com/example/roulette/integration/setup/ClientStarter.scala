@@ -1,4 +1,4 @@
-package com.example.roulette.client
+package com.example.roulette.integration.setup
 
 import cats.effect.{IO, Resource}
 import cats.implicits.catsSyntaxParallelSequence1
@@ -6,7 +6,7 @@ import com.example.roulette.response.Response
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.http4s.Uri
-import org.http4s.implicits._
+import org.http4s.implicits.http4sLiteralsSyntax
 import org.http4s.jdkhttpclient.{JdkWSClient, WSClient, WSFrame, WSRequest}
 
 import java.net.http.HttpClient
@@ -50,5 +50,3 @@ object ClientStarter {
     }
   }
 }
-
-

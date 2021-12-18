@@ -20,7 +20,6 @@ class ResponseTest extends AnyWordSpec with Matchers {
 
   "Response json validation" should {
     "encode and decode BetPlaced Response" in {
-      println(betPlaced.asJson.noSpaces)
       responseDecoder(betPlacedJson) mustBe Right(betPlaced)
       betPlaced.asJson.dropNullValues.noSpaces mustBe betPlacedJson
     }
@@ -28,13 +27,10 @@ class ResponseTest extends AnyWordSpec with Matchers {
       responseDecoder(betsClearedJson) mustBe Right(betsCleared)
       betsCleared.asJson.noSpaces mustBe betsClearedJson
     }
-    "encode and decode PlayerRegistered Response" in {
-      responseDecoder(playerRegisteredJson) mustBe Right(playerRegistered)
-      playerRegistered.asJson.deepDropNullValues.noSpaces mustBe playerRegisteredJson
-    }
-    "encode and decode PlayerRemoved Response" in {
-      responseDecoder(playerRemovedJson) mustBe Right(playerRemoved)
-      playerRemoved.asJson.noSpaces mustBe playerRemovedJson
+    "encode and decode JoinedGame Response" in {
+
+      responseDecoder(joinedGameJson) mustBe Right(joinedGame)
+      joinedGame.asJson.deepDropNullValues.noSpaces mustBe joinedGameJson
     }
 
     "encode and decode BadRequest Response" in {
@@ -74,19 +70,16 @@ object ResponseTest {
   val bet: Bet = Bet.Red(Nil, Chips(40))
 
 
-  val betPlaced: Response = BetPlaced(bet.betAmount, player1.username, None)
+  val betPlaced: Response = BetPlaced(bet.betAmount, player1.username)
   val betPlacedJson = """{"chipsPlaced":40,"username":"player-username","responseType":"BetPlaced"}"""
 
   val betsCleared: Response = BetsCleared(player1.username)
   val betsClearedJson = """{"username":"player-username","responseType":"BetsCleared"}"""
 
 
-  val playerRegistered: Response = PlayerRegistered(player1, Some(GamePhase.BetsOpen), Some(Nil))
-  val playerRegisteredJson =
-    """{"player":{"username":"player-username","balance":200,"chipsPlaced":0},"gamePhase":"BetsOpen","players":[],"responseType":"PlayerRegistered"}"""
-
-  val playerRemoved: Response = PlayerRemoved(player1.username)
-  val playerRemovedJson = """{"username":"player-username","responseType":"PlayerRemoved"}"""
+  val joinedGame: Response = WelcomeToGame(player1, GamePhase.BetsOpen, Nil)
+  val joinedGameJson =
+    """{"player":{"username":"player-username","balance":200,"chipsPlaced":0},"gamePhase":"BetsOpen","players":[],"responseType":"PlayerJoinedGame"}"""
 
   val timer: Timer = Timer(0)
   val timerJson: String = "0"
@@ -95,7 +88,7 @@ object ResponseTest {
   val luckyNumberJson: String = "7"
 
   val badRequestJson = """{"username":"player-username","message":"error","responseType":"BadRequest"}"""
-  val badRequest: Response = BadRequest(player1.username, CustomBadRequestMessage("error"))
+  val badRequest: Response = BadRequest(CustomBadRequestMessage("error"))
 
 
   val timerNotification: Response = TimerNotification(timer)

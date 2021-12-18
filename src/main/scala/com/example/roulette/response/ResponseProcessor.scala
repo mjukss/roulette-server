@@ -1,21 +1,29 @@
 package com.example.roulette.response
 
+import cats.Monad
+import cats.data.OptionT
 import com.example.roulette.player.Player.Username
-import com.example.roulette.response.BadRequestMessage.UsernameTaken
+import com.example.roulette.player.{PlayerUsernameCache, PlayersCache}
+import com.example.roulette.response.Response.PlayerJoinedGame
 import io.circe.syntax.EncoderOps
 import org.http4s.websocket.WebSocketFrame.Text
 
 object ResponseProcessor {
-  import Response._
+  def getFilteredResponse[F[_] : Monad](response: Response,
+                                        usernameCache: PlayerUsernameCache[F],
+                                        playersCache: PlayersCache[F]): F[Option[Text]] = {
+    (for {
+      username <- OptionT(usernameCache.read)
+      _ <- OptionT(playersCache.readOne(username))
+      textResponse <- OptionT.fromOption(responseToText(username, response))
+    } yield textResponse).value
+  }
 
-
-  val toWebSocketText: Username => PartialFunction[Response, Text] = username => {
-      case res@BadRequest(resUsername, msg)
-        if (resUsername == username) && msg != UsernameTaken => textFromResponse(res)
-      case res@BetPlaced(_, resUsername, _) if resUsername != username => textFromResponse(res.copy(bet = None))
-      case res@PlayerRegistered(player, _, _)
-        if player.username != username => textFromResponse(res.copy(gamePhase = None, players = None))
-      case res: Response if !res.isInstanceOf[BadRequest] => textFromResponse(res)
+  def responseToText(username: Username, response: Response): Option[Text] = {
+    response match {
+      case response: PlayerJoinedGame if response.player.username == username => None
+      case response => Some(textFromResponse(response))
+    }
   }
 
   private def textFromResponse(response: Response): Text = Text(response.asJson.deepDropNullValues.noSpaces)

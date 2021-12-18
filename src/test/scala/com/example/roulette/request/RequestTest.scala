@@ -1,7 +1,7 @@
 package com.example.roulette.request
 
 import com.example.roulette.bet.Bet.{BetPosition, Chips, Straight}
-import com.example.roulette.player.Player.Username
+import com.example.roulette.player.Player.{Password, Username}
 import io.circe
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
@@ -13,7 +13,6 @@ class RequestTest extends AnyWordSpec with Matchers {
 
   "Request json validation" should {
     "encode and decode PlaceBet Request" in {
-      println(placeBet.asJson.noSpaces)
       requestDecoder(placeBetJson) mustBe Right(placeBet)
       placeBet.asJson.noSpaces mustBe placeBetJson
     }
@@ -25,14 +24,10 @@ class RequestTest extends AnyWordSpec with Matchers {
       requestDecoder(registerPlayerJson) mustBe Right(registerPlayer)
       registerPlayer.asJson.noSpaces mustBe registerPlayerJson
     }
-    "encode and decode RemovePlayer Request" in {
-      requestDecoder(removePlayerJson) mustBe Right(removePlayer)
-      removePlayer.asJson.noSpaces mustBe removePlayerJson
-    }
-    "decode string to either Request or Error" in {
-      Request.fromString("invalid String").isLeft mustBe true
-      Request.fromString(removePlayerJson).isRight mustBe true
-    }
+//    "decode string to either Request or Error" in {
+//      Request.fromString("invalid String").isLeft mustBe true
+//      Request.fromString(removePlayerJson).isRight mustBe true
+//    }
   }
 }
 
@@ -49,11 +44,9 @@ object RequestTest {
   val clearBets: Request = ClearBets
   val clearBetsJson = """{"requestType":"ClearBets"}"""
 
-  val registerPlayer: Request = RegisterPlayer
-  val registerPlayerJson = """{"requestType":"RegisterPlayer"}"""
+  val registerPlayer: Request = JoinGame(username, Password("12345"))
+  val registerPlayerJson = """{"requestType":"JoinGame"}"""
 
-  val removePlayer: Request = RemovePlayer
-  val removePlayerJson = """{"requestType":"RemovePlayer"}"""
 
 
 }
