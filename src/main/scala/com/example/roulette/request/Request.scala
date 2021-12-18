@@ -14,7 +14,7 @@ object Request {
   final case class InvalidRequest(errorMessage: String) extends Request
   @ConfiguredJsonCodec final case class RegisterPlayer(username: Username, password: Password) extends Request
 
-  implicit val genDevConfig: Configuration =
+  implicit val requestConfig: Configuration =
     Configuration.default.withDiscriminator("requestType")
 
   def fromString(string: String): Request = decode[Request](string) match {

@@ -70,14 +70,14 @@ object ResponseTest {
   val bet: Bet = Bet.Red(Nil, Chips(40))
 
 
-  val betPlaced: Response = BetPlaced(bet.betAmount, player1.username, None)
+  val betPlaced: Response = BetPlaced(bet.betAmount, player1.username)
   val betPlacedJson = """{"chipsPlaced":40,"username":"player-username","responseType":"BetPlaced"}"""
 
   val betsCleared: Response = BetsCleared(player1.username)
   val betsClearedJson = """{"username":"player-username","responseType":"BetsCleared"}"""
 
 
-  val joinedGame: Response = PlayerJoinedGame(player1, Some(GamePhase.BetsOpen), Some(Nil))
+  val joinedGame: Response = WelcomeToGame(player1, GamePhase.BetsOpen, Nil)
   val joinedGameJson =
     """{"player":{"username":"player-username","balance":200,"chipsPlaced":0},"gamePhase":"BetsOpen","players":[],"responseType":"PlayerJoinedGame"}"""
 

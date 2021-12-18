@@ -2,6 +2,7 @@ package com.example.roulette.game
 
 import cats.effect.kernel.Sync
 import cats.effect.std.Random
+import cats.implicits.{toFunctorOps, toFlatMapOps}
 import com.example.roulette.game.GamePhase.BetsClosed
 import com.example.roulette.player.PlayerProcessor.{getActivePlayers, getPlayersAfterPhase}
 import com.example.roulette.player.PlayersCache
@@ -15,7 +16,6 @@ object GamePhaseProcessor {
                                            timerCache: TimerCache[F],
                                            gameCache: GameCache[F],
                                            playersCache: PlayersCache[F]): F[Response] = {
-    import cats.implicits._
     for {
       _ <- timerCache.resetTimer()
       gamePhase <- gameCache.changePhaseAndGet()
@@ -26,6 +26,4 @@ object GamePhaseProcessor {
       luckyNumberOption = Option.when(gamePhase == BetsClosed)(luckyNumber)
     } yield PhaseChanged(gamePhase, getActivePlayers(players), luckyNumberOption)
   }
-
-
 }

@@ -9,7 +9,7 @@ import com.example.roulette.integration.setup.PlayerConnection
 import com.example.roulette.player.Player.{Password, Username}
 import com.example.roulette.request.Request.{JoinGame, PlaceBet}
 import com.example.roulette.response.Response
-import com.example.roulette.response.Response.{BadRequest, PlayerJoinedGame}
+import com.example.roulette.response.Response.{BadRequest, PlayerJoinedGame, WelcomeToGame}
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -20,12 +20,12 @@ class PlaceBetTest extends AnyWordSpec with Matchers {
     "allow to place bet if game phase is BetsOpen" in {
       if (logs.exists(_.isInstanceOf[BadRequest])) {
         inside (logs.find(_.isInstanceOf[PlayerJoinedGame])) {
-          case Some(PlayerJoinedGame(_, gamePhase, _)) =>
+          case Some(WelcomeToGame(_, gamePhase, _)) =>
             gamePhase mustBe Some(BetsClosed)
         }
       } else {
         inside (logs.find(_.isInstanceOf[PlayerJoinedGame])) {
-          case Some(PlayerJoinedGame(_, gamePhase, _)) =>
+          case Some(WelcomeToGame(_, gamePhase, _)) =>
             gamePhase mustBe Some(BetsOpen)
         }
       }
