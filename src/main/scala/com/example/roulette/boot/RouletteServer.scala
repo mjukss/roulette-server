@@ -17,7 +17,7 @@ object RouletteServer {
                            t: Topic[F, Response]): Stream[F, ExitCode] = {
     val port = sys.env.getOrElse("PORT", "8080").toInt
     BlazeServerBuilder[F]
-      .bindHttp(port, "localhost")
+      .bindHttp(port, "0.0.0.0")
       .withHttpWebSocketApp(gameRoutes(gameCache, playersCache, queue, t)(_).orNotFound)
       .serve
   }
