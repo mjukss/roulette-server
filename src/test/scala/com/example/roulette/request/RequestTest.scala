@@ -24,10 +24,19 @@ class RequestTest extends AnyWordSpec with Matchers {
       requestDecoder(registerPlayerJson) mustBe Right(registerPlayer)
       registerPlayer.asJson.noSpaces mustBe registerPlayerJson
     }
-//    "decode string to either Request or Error" in {
-//      Request.fromString("invalid String").isLeft mustBe true
-//      Request.fromString(removePlayerJson).isRight mustBe true
-//    }
+    "encode and decode ExitGame Request" in {
+      requestDecoder(exitGameJson) mustBe Right(exitGame)
+      exitGame.asJson.noSpaces mustBe exitGameJson
+    }
+    "encode and decode JoinGame Request" in {
+      requestDecoder(joinGameJson) mustBe Right(joinGame)
+      joinGame.asJson.noSpaces mustBe joinGameJson
+    }
+    "encode and decode InvalidRequest Request" in {
+      requestDecoder(invalidRequestJson) mustBe Right(invalidRequest)
+      invalidRequest.asJson.noSpaces mustBe invalidRequestJson
+    }
+
   }
 }
 
@@ -38,6 +47,7 @@ object RequestTest {
   val requestDecoder: String => Either[circe.Error, Request] = decode[Request]
 
   val username: Username = Username("player1")
+  val password: Password = Password("12345")
   val placeBet: Request = PlaceBet(Straight(List(BetPosition(1)), Chips(20)))
   val placeBetJson = """{"bet":{"positions":[1],"betAmount":20,"betType":"Straight"},"requestType":"PlaceBet"}"""
 
@@ -45,7 +55,16 @@ object RequestTest {
   val clearBetsJson = """{"requestType":"ClearBets"}"""
 
   val registerPlayer: Request = JoinGame(username, Password("12345"))
-  val registerPlayerJson = """{"requestType":"JoinGame"}"""
+  val registerPlayerJson = """{"username":"player1","password":"12345","requestType":"JoinGame"}"""
+
+  val exitGame: Request = ExitGame
+  val exitGameJson = """{"requestType":"ExitGame"}"""
+
+  val joinGame: Request = JoinGame(username, password)
+  val joinGameJson = """{"username":"player1","password":"12345","requestType":"JoinGame"}"""
+
+  val invalidRequest: Request = InvalidRequest("error")
+  val invalidRequestJson = """{"errorMessage":"error","requestType":"InvalidRequest"}"""
 
 
 
