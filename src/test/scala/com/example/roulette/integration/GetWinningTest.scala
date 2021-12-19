@@ -4,7 +4,7 @@ import cats.effect.unsafe.implicits.global
 import com.example.roulette.bet.Bet.{BetPosition, Chips, Straight}
 import com.example.roulette.game.GamePhase.BetsClosed
 import com.example.roulette.integration.GetWinningTest.logs
-import com.example.roulette.integration.setup.ClientStarter.connectToServer
+import com.example.roulette.integration.setup.ClientStarter.connectToWebSocket
 import com.example.roulette.integration.setup.PlayerConnection
 import com.example.roulette.player.Player.{Password, Username}
 import com.example.roulette.request.Request.{JoinGame, PlaceBet}
@@ -67,7 +67,7 @@ object GetWinningTest extends AnyWordSpec with Matchers {
     delay = 15.seconds
   )
 
-  val logs: List[Response] = connectToServer(List(playerConnection1, playerConnection2)).unsafeRunSync()
+  val logs: List[Response] = connectToWebSocket(List(playerConnection1, playerConnection2)).unsafeRunSync()
 }
 
 

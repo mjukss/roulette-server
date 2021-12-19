@@ -54,8 +54,8 @@ object RequestTest {
   val clearBets: Request = ClearBets
   val clearBetsJson = """{"requestType":"ClearBets"}"""
 
-  val registerPlayer: Request = JoinGame(username, Password("12345"))
-  val registerPlayerJson = """{"username":"player1","password":"12345","requestType":"JoinGame"}"""
+  val registerPlayer: Request = RegisterPlayer(username, Password("12345"))
+  val registerPlayerJson = """{"username":"player1","password":"12345","requestType":"RegisterPlayer"}"""
 
   val exitGame: Request = ExitGame
   val exitGameJson = """{"requestType":"ExitGame"}"""

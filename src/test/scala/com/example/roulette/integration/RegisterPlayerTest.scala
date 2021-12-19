@@ -2,7 +2,7 @@ package com.example.roulette.integration
 
 import cats.effect.unsafe.implicits.global
 import com.example.roulette.integration.RegisterPlayerTest._
-import com.example.roulette.integration.setup.ClientStarter.connectToServer
+import com.example.roulette.integration.setup.ClientStarter.connectToWebSocket
 import com.example.roulette.integration.setup.PlayerConnection
 import com.example.roulette.player.Player
 import com.example.roulette.player.Player.{Password, Username}
@@ -63,16 +63,16 @@ object RegisterPlayerTest {
   )
 
 
-  def logs: List[Response] = connectToServer(List(playerConnection)).unsafeRunSync()
+  def logs: List[Response] = connectToWebSocket(List(playerConnection)).unsafeRunSync()
 
-  def logs2: List[Response] = connectToServer(
+  def logs2: List[Response] = connectToWebSocket(
     List(
       playerConnection.copy(msgLimit = 0, stayConnected = 3.seconds),
       playerConnection.copy(msgLimit = 1, delay = 2.seconds),
     )
   ).unsafeRunSync()
 
-  def logs3: List[Response] = connectToServer(
+  def logs3: List[Response] = connectToWebSocket(
     List(
       playerConnection.copy(msgLimit = 0, stayConnected = 2.seconds),
       playerConnection.copy(username = username2, msgLimit = 1, delay = 1.seconds),

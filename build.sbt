@@ -7,6 +7,9 @@ val ScalaTestVersion = "3.2.10"
 
 enablePlugins(JavaAppPackaging)
 
+val AkkaVersion = "2.6.8"
+val AkkaHttpVersion = "10.2.7"
+
 
 lazy val root = (project in file("."))
   .settings(
@@ -24,11 +27,15 @@ lazy val root = (project in file("."))
       "io.circe"        %% "circe-generic"          % CirceVersion,
       "io.circe"        %% "circe-generic-extras"   % CirceVersion,
       "io.circe"        %% "circe-parser"           % CirceVersion,
+      "io.circe"        %% "circe-literal"          % CirceVersion,
       "org.scalatest"   %% "scalatest"              % ScalaTestVersion % Test,
       "org.scalameta"   %% "munit"                  % MunitVersion            % Test,
       "org.typelevel"   %% "munit-cats-effect-3"    % MunitCatsEffectVersion  % Test,
       "ch.qos.logback"  %  "logback-classic"        % LogbackVersion,
-      "org.scalameta"   %% "svm-subs"               % "20.2.0"
+      "org.scalameta"   %% "svm-subs"               % "20.2.0",
+      "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1"),
