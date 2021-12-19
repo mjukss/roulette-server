@@ -79,7 +79,7 @@ object WebSocketRequestProcessor {
                                      playersCache: PlayersCache[F]): F[Option[Response]] =
     validateBet(bet, player, gamePhase) match {
       case Valid(updatedPlayer@Player(username, _, _, _, chipsPlaced, _)) =>
-        playersCache.updateOne(updatedPlayer).as(Option(BetPlaced(chipsPlaced, username)))
+        playersCache.updateOne(updatedPlayer).as(Option(BetPlaced(chipsPlaced, username, Some(bet))))
       case Invalid(msg) => sendPrivateResponse(privateTopic, BadRequest(msg)).as(Option.empty[Response])
     }
 

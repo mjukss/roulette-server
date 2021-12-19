@@ -1,6 +1,7 @@
 package com.example.roulette.response
 
 import cats.effect.kernel.Concurrent
+import com.example.roulette.bet.Bet
 import com.example.roulette.bet.Bet.Chips
 import com.example.roulette.game.GamePhase
 import com.example.roulette.player.Player
@@ -16,7 +17,7 @@ import org.http4s.circe.jsonOf
 @ConfiguredJsonCodec sealed trait Response
 
 object Response {
-  final case class BetPlaced(chipsPlaced: Chips, username: Username) extends Response
+  final case class BetPlaced(chipsPlaced: Chips, username: Username, bet: Option[Bet]) extends Response
   final case class BetsCleared(username: Username) extends Response
   final case class PlayerJoinedGame(player: Player) extends Response
   final case class WelcomeToGame(player: Player, gamePhase: GamePhase, players: List[Player]) extends Response
@@ -38,5 +39,4 @@ object Response {
     Configuration.default.withDiscriminator("responseType")
   }
 }
-
 

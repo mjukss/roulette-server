@@ -78,7 +78,7 @@ object ResponseTest {
   val bet: Bet = Bet.Red(Nil, Chips(40))
 
 
-  val betPlaced: Response = BetPlaced(bet.betAmount, player1.username)
+  val betPlaced: Response = BetPlaced(bet.betAmount, player1.username, None)
   val betPlacedJson = """{"chipsPlaced":40,"username":"player-username","responseType":"BetPlaced"}"""
 
   val betsCleared: Response = BetsCleared(player1.username)

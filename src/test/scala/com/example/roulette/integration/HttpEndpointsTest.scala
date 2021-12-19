@@ -29,8 +29,6 @@ class HttpEndpointsTest extends CatsEffectSuite {
 
 object HttpEndpointsTest {
 
-
-
   val (username, password) = (Username("player777420"), Password("1234556"))
 
   val connections = List(

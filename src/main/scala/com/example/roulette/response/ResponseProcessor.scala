@@ -4,7 +4,7 @@ import cats.Monad
 import cats.data.OptionT
 import com.example.roulette.player.Player.Username
 import com.example.roulette.player.{PlayerUsernameCache, PlayersCache}
-import com.example.roulette.response.Response.PlayerJoinedGame
+import com.example.roulette.response.Response.{BetPlaced, PlayerJoinedGame}
 import io.circe.syntax.EncoderOps
 import org.http4s.websocket.WebSocketFrame.Text
 
@@ -22,6 +22,7 @@ object ResponseProcessor {
   def responseToText(username: Username, response: Response): Option[Text] = {
     response match {
       case response: PlayerJoinedGame if response.player.username == username => None
+      case response: BetPlaced if response.username != username => Some(textFromResponse(response.copy(bet = None)))
       case response => Some(textFromResponse(response))
     }
   }

@@ -11,10 +11,10 @@ import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 import org.http4s.dsl.Http4sDsl
 
-object RestRequestProcessor {
+object HttpRequestProcessor {
 
   def registerPlayer[F[_] : Concurrent](
-                                         registerPlayerReq: Request,
+                                         registerPlayerReq: RegisterPlayer,
                                          playersCache: PlayersCache[F],
                                        ): F[org.http4s.Response[F]] = {
     val RegisterPlayer(username, password) = registerPlayerReq
@@ -36,7 +36,7 @@ object RestRequestProcessor {
   }
 
   def removePlayer[F[_] : Concurrent](
-                                       removePlayerReq: Request,
+                                       removePlayerReq: RemovePlayer,
                                        playersCache: PlayersCache[F],
                                        ): F[org.http4s.Response[F]] = {
     val RemovePlayer(username, password) = removePlayerReq
