@@ -5,6 +5,7 @@ import cats.implicits.toTraverseOps
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.client.Client
 import org.http4s.dsl.io.POST
+import org.http4s.implicits.http4sLiteralsSyntax
 import org.http4s.jdkhttpclient._
 import org.http4s.{Request, Uri}
 
@@ -12,6 +13,9 @@ import java.net.http.HttpClient
 
 object HttpStarter  {
   type ClientBody = com.example.roulette.request.Request
+
+  val registerUri = uri"https://roulette-app-evo.herokuapp.com/register"
+  val removeUri = uri"https://roulette-app-evo.herokuapp.com/remove"
 
   private def buildHttpClient(uri: Uri, body: ClientBody, client: Client[IO]) = {
     val request = Request[IO](method = POST, uri).withEntity(body)
