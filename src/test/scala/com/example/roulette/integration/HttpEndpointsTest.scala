@@ -1,13 +1,13 @@
 package com.example.roulette.integration
 
-import com.example.roulette.integration.UserManagementTest._
+import com.example.roulette.integration.HttpEndpointsTest._
 import com.example.roulette.integration.setup.HttpStarter
+import com.example.roulette.integration.setup.HttpStarter.{registerUri, removeUri}
 import com.example.roulette.player.Player.{Password, Username}
 import com.example.roulette.request.Request.{RegisterPlayer, RemovePlayer}
 import munit.CatsEffectSuite
-import org.http4s.implicits.http4sLiteralsSyntax
 
-class UserManagementTest extends CatsEffectSuite {
+class HttpEndpointsTest extends CatsEffectSuite {
 
   test("Register and remove player") {
     assertIO(successfulRegistration, List(
@@ -27,23 +27,21 @@ class UserManagementTest extends CatsEffectSuite {
   }
 }
 
-object UserManagementTest {
+object HttpEndpointsTest {
 
 
-  val uriRegister = uri"https://roulette-app-evo.herokuapp.com/register"
-  val uriRemove = uri"https://roulette-app-evo.herokuapp.com/remove"
 
   val (username, password) = (Username("player777420"), Password("1234556"))
 
   val connections = List(
-    (uriRegister, RegisterPlayer(username, password)),
-    (uriRemove, RemovePlayer(username, password))
+    (registerUri, RegisterPlayer(username, password)),
+    (removeUri, RemovePlayer(username, password))
   )
 
   def successfulRegistration = HttpStarter.run(connections)
 
-  def unsuccessfulRegistration = HttpStarter.run((uriRegister, RegisterPlayer(username, password)) :: connections)
+  def unsuccessfulRegistration = HttpStarter.run((registerUri, RegisterPlayer(username, password)) :: connections)
 
-  def unsuccessfulRemovePlayer = HttpStarter.run((uriRemove, RemovePlayer(username, password)) :: Nil)
+  def unsuccessfulRemovePlayer = HttpStarter.run((removeUri, RemovePlayer(username, password)) :: Nil)
 
 }
