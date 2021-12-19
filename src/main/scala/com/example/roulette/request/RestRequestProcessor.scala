@@ -14,7 +14,7 @@ import org.http4s.dsl.Http4sDsl
 object RestRequestProcessor {
 
   def registerPlayer[F[_] : Concurrent](
-                                         registerPlayerReq: RegisterPlayer,
+                                         registerPlayerReq: Request,
                                          playersCache: PlayersCache[F],
                                        ): F[org.http4s.Response[F]] = {
     val RegisterPlayer(username, password) = registerPlayerReq
@@ -36,7 +36,7 @@ object RestRequestProcessor {
   }
 
   def removePlayer[F[_] : Concurrent](
-                                       removePlayerReq: RemovePlayer,
+                                       removePlayerReq: Request,
                                        playersCache: PlayersCache[F],
                                        ): F[org.http4s.Response[F]] = {
     val RemovePlayer(username, password) = removePlayerReq

@@ -5,9 +5,8 @@ import cats.effect.std.Queue
 import cats.implicits.{toFlatMapOps, toFunctorOps}
 import com.example.roulette.game.GameCache
 import com.example.roulette.player.{PlayerUsernameCache, PlayersCache}
-import com.example.roulette.request.Request.{RegisterPlayer, RemovePlayer}
-import com.example.roulette.request.RestRequestProcessor
 import com.example.roulette.request.WebSocketRequestProcessor.processWSRequest
+import com.example.roulette.request.{Request, RestRequestProcessor}
 import com.example.roulette.response.Response
 import com.example.roulette.response.ResponseProcessor.getFilteredResponse
 import fs2.concurrent.Topic
@@ -28,12 +27,12 @@ object RouletteRoutes {
 
     HttpRoutes.of[F] {
       case req@POST -> Root / "register" => for {
-        reqBody <- req.as[RegisterPlayer]
+        reqBody <- req.as[Request]
         response <- RestRequestProcessor.registerPlayer(reqBody, playersCache)
       } yield response
 
       case req@POST -> Root / "remove" => for {
-        reqBody <- req.as[RemovePlayer]
+        reqBody <- req.as[Request]
         response <- RestRequestProcessor.removePlayer(reqBody, playersCache)
       } yield response
 
