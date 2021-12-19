@@ -1,9 +1,12 @@
 package com.example.roulette.request
 
+import cats.effect.kernel.Concurrent
 import com.example.roulette.bet.Bet
 import com.example.roulette.player.Player.{Password, Username}
 import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
 import io.circe.parser.decode
+import org.http4s.EntityDecoder
+import org.http4s.circe.jsonOf
 
 @ConfiguredJsonCodec sealed trait Request
 object Request {
@@ -12,7 +15,10 @@ object Request {
   final case class JoinGame(username: Username, password: Password) extends Request
   final case object ExitGame extends Request
   final case class InvalidRequest(errorMessage: String) extends Request
-  @ConfiguredJsonCodec final case class RegisterPlayer(username: Username, password: Password) extends Request
+  final case class RegisterPlayer(username: Username, password: Password) extends Request
+  final case class RemovePlayer(username: Username, password: Password) extends Request
+
+  implicit def registerEntityDecoder[F[_] : Concurrent]: EntityDecoder[F, Request] = jsonOf[F, Request]
 
   implicit val requestConfig: Configuration =
     Configuration.default.withDiscriminator("requestType")

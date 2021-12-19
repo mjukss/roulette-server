@@ -2,20 +2,20 @@ package com.example.roulette.integration.setup
 
 import cats.effect.{IO, Resource}
 import cats.implicits.catsSyntaxParallelSequence1
+import com.example.roulette.player.Player.Username
+import com.example.roulette.request.Request.ClearBets
 import com.example.roulette.response.Response
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
-import org.http4s.Uri
 import org.http4s.implicits.http4sLiteralsSyntax
-import org.http4s.jdkhttpclient.{JdkWSClient, WSClient, WSFrame, WSRequest}
+import org.http4s.jdkhttpclient._
 
 import java.net.http.HttpClient
 
 object ClientStarter {
 
   private def buildWSClient(client: PlayerConnection, wsClient: WSClient[IO]) = {
-    val domain = uri"ws://localhost:8080/"
-    val uri = Uri.fromString(s"$domain${client.username.value}").getOrElse(domain)
+    val uri = uri"ws://localhost:8080/"
 
     wsClient.connectHighLevel(WSRequest(uri))
       .use { conn =>
@@ -34,7 +34,7 @@ object ClientStarter {
       }
   }
 
-  def connectToServer(clients: List[PlayerConnection]): IO[List[Response]] = {
+  def connectToWebSocket(clients: List[PlayerConnection]): IO[List[Response]] = {
     val webSocket = Resource.eval(IO(HttpClient.newHttpClient()))
       .flatMap(JdkWSClient[IO](_))
 
@@ -49,4 +49,11 @@ object ClientStarter {
 
     }
   }
+
+
+  val playerConnection: PlayerConnection = PlayerConnection(
+    username = Username("player1"),
+    requests = List(ClearBets),
+    msgLimit = 1
+  )
 }

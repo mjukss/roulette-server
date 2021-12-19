@@ -5,17 +5,15 @@ import cats.effect.std.Queue
 import cats.implicits.{toFlatMapOps, toFunctorOps}
 import com.example.roulette.game.GameCache
 import com.example.roulette.player.{PlayerUsernameCache, PlayersCache}
-import com.example.roulette.request.RestRequestProcessor
-import com.example.roulette.request.Request.RegisterPlayer
 import com.example.roulette.request.WebSocketRequestProcessor.processWSRequest
+import com.example.roulette.request.{Request, RestRequestProcessor}
 import com.example.roulette.response.Response
 import com.example.roulette.response.ResponseProcessor.getFilteredResponse
 import fs2.concurrent.Topic
-import org.http4s.circe.jsonOf
+import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.{EntityDecoder, HttpRoutes}
 
 object RouletteRoutes {
   def gameRoutes[F[_] : Concurrent](
@@ -27,12 +25,15 @@ object RouletteRoutes {
     val dsl = Http4sDsl[F]
     import dsl._
 
-    implicit val registerEntityDecoder: EntityDecoder[F, RegisterPlayer] = jsonOf[F, RegisterPlayer]
-
     HttpRoutes.of[F] {
       case req@POST -> Root / "register" => for {
-        reqBody <- req.as[RegisterPlayer]
+        reqBody <- req.as[Request]
         response <- RestRequestProcessor.registerPlayer(reqBody, playersCache)
+      } yield response
+
+      case req@POST -> Root / "remove" => for {
+        reqBody <- req.as[Request]
+        response <- RestRequestProcessor.removePlayer(reqBody, playersCache)
       } yield response
 
       case GET -> Root =>

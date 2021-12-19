@@ -3,7 +3,7 @@ package com.example.roulette.integration
 import cats.effect.unsafe.implicits.global
 import com.example.roulette.game.GamePhase.{BetsClosed, BetsOpen}
 import com.example.roulette.integration.PhaseChangeTest.logs
-import com.example.roulette.integration.setup.ClientStarter.connectToServer
+import com.example.roulette.integration.setup.ClientStarter.connectToWebSocket
 import com.example.roulette.integration.setup.PlayerConnection
 import com.example.roulette.player.Player
 import com.example.roulette.player.Player.{Password, Username}
@@ -41,5 +41,5 @@ object PhaseChangeTest extends AnyWordSpec with Matchers {
     msgLimit = 35,
   )
 
-  def logs: List[Response] = connectToServer(List(playerConnection)).unsafeRunSync()
+  def logs: List[Response] = connectToWebSocket(List(playerConnection)).unsafeRunSync()
 }
