@@ -7,6 +7,7 @@ import cats.effect.std.Queue
 import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxSemigroup, catsSyntaxTuple3Semigroupal, toFlatMapOps, toFunctorOps}
 import cats.{Applicative, Functor, Monad}
 import com.example.roulette.bet.Bet
+import com.example.roulette.bet.Bet.Chips
 import com.example.roulette.bet.BetValidator.validateBet
 import com.example.roulette.game.{GameCache, GamePhase}
 import com.example.roulette.player.PlayerProcessor.getActivePlayers
@@ -88,7 +89,7 @@ object WebSocketRequestProcessor {
   } yield Option.empty[Response]
 
   private def clearBets[F[_] : Monad](player: Player, playersCache: PlayersCache[F]): F[Response] = {
-    val updatedPlayer = player.copy(balance = player.chipsPlaced |+| player.balance)
+    val updatedPlayer = player.copy(balance = player.chipsPlaced |+| player.balance, chipsPlaced = Chips(0))
     for {
       _ <- playersCache.updateOne(updatedPlayer)
     } yield BetsCleared(player.username)
