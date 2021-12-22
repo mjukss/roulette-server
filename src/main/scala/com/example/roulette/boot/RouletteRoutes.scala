@@ -41,13 +41,16 @@ object RouletteRoutes {
         for {
           privateTopic <- Topic[F, WebSocketFrame]
           usernameCache <- PlayerUsernameCache()
-          webSocketResponse <- wsb.build(
-            receive = processWSRequest(privateTopic, _, playersCache, gameCache, usernameCache, queue),
-            send = publicTopic
-              .subscribe(1000)
+          webSocketResponse <- {
+            val combinedStreams = publicTopic.subscribe(1000)
               .evalMapFilter(getFilteredResponse(_, usernameCache, playersCache))
               .merge(privateTopic.subscribe(1000))
-          )
+
+            wsb.build(
+              receive = processWSRequest(privateTopic, _, playersCache, gameCache, usernameCache, queue),
+              send = combinedStreams
+            )
+          }
         } yield webSocketResponse
     }
   }
