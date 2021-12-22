@@ -6,11 +6,9 @@ import com.example.roulette.game.{GameCache, GamePhase, GamePhaseProcessor}
 import com.example.roulette.player.PlayersCache
 import com.example.roulette.response.Response
 import com.example.roulette.response.Response.TimerNotification
-import com.example.roulette.wheel.WheelRange
 
 object TimerProcessor {
-  def getResponse[F[_] : Sync](wheelRange: WheelRange,
-                               timerCache: TimerCache[F],
+  def getResponse[F[_] : Sync](timerCache: TimerCache[F],
                                gameCache: GameCache[F],
                                playersCache: PlayersCache[F]): F[Response] = {
     import cats.implicits.{toFlatMapOps, toFunctorOps}
@@ -21,9 +19,9 @@ object TimerProcessor {
 
     timerAndGamePhase.flatMap {
       case (Timer(time), BetsOpen)
-        if time < 1 => GamePhaseProcessor.getPhaseChangedResponse(wheelRange, timerCache, gameCache, playersCache)
+        if time < 1 => GamePhaseProcessor.getPhaseChangedResponse(timerCache, gameCache, playersCache)
       case (Timer(time), BetsClosed)
-        if time < 1 => GamePhaseProcessor.getPhaseChangedResponse(wheelRange, timerCache, gameCache, playersCache)
+        if time < 1 => GamePhaseProcessor.getPhaseChangedResponse(timerCache, gameCache, playersCache)
       case (t, _) => timerCache.decreaseTime().as(TimerNotification(t))
     }
   }

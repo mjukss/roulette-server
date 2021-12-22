@@ -6,7 +6,6 @@ import com.example.roulette.game.GameCache
 import com.example.roulette.player.PlayersCache
 import com.example.roulette.response.Response
 import com.example.roulette.timer.{TimerCache, TimerProcessor}
-import com.example.roulette.wheel.WheelRange
 import fs2.Stream
 import fs2.concurrent.Topic
 
@@ -27,18 +26,19 @@ object Main extends IOApp {
           .awakeEvery[IO](1.seconds)
           .evalMap { _ =>
             TimerProcessor.getResponse(
-              WheelRange.fromCommandLineArgs(args),
               timerCache,
               gameCache,
               playerCache)
           }
           .through(t.publish)
 
-        val rawRequestStream = Stream
+        val serverStream = RouletteServer.stream(playerCache, gameCache, q, t)
+
+        val webSocketResponseStream = Stream
           .fromQueueNoneTerminated(q)
           .through(t.publish)
 
-        Stream(rawRequestStream, RouletteServer.stream(playerCache, gameCache, q, t), timerStream)
+        Stream(serverStream, webSocketResponseStream, timerStream)
           .parJoinUnbounded
           .compile
           .drain
