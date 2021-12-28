@@ -2,7 +2,7 @@
 
 ![Alt Text](https://media0.giphy.com/media/a8QPwlgUJoKuumPSFo/giphy.gif)
 
-## [Link to demo](https://wheel-ev0.netlify.com)
+### [Link to demo](https://wheel-evo.netlify.com)
 
 To start server, in the project directory, you can run:
 
