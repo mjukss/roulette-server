@@ -89,7 +89,7 @@ object WebSocketRequestProcessor {
   } yield Option.empty[Response]
 
   private def clearBets[F[_] : Monad](player: Player, playersCache: PlayersCache[F]): F[Response] = {
-    val updatedPlayer = player.copy(balance = player.chipsPlaced |+| player.balance, chipsPlaced = Chips(0))
+    val updatedPlayer = player.copy(balance = player.chipsPlaced |+| player.balance, chipsPlaced = Chips(0) ,bets = None)
     for {
       _ <- playersCache.updateOne(updatedPlayer)
     } yield BetsCleared(player.username)
