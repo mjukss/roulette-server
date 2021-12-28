@@ -44,11 +44,11 @@ place bet
 
 ```json
   {
-   requestType: "PlaceBet",
-    bet: {
-        betType: "Straight",
-        betAmount: $betAmount,
-        positions: [ $position ]
+   "requestType": "PlaceBet",
+    "bet": {
+        "betType": "Straight",
+        "betAmount": $betAmount,
+        "positions": [ $position ]
     }
   }
 ```
