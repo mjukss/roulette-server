@@ -3,17 +3,17 @@ package com.example.roulette.response
 import cats.Monad
 import cats.data.OptionT
 import com.example.roulette.player.Player.Username
-import com.example.roulette.player.{PlayerUsernameCache, PlayersCache}
+import com.example.roulette.player.{AuthCache, PlayersCache}
 import com.example.roulette.response.Response.{BetPlaced, PlayerJoinedGame}
 import io.circe.syntax.EncoderOps
 import org.http4s.websocket.WebSocketFrame.Text
 
 object ResponseProcessor {
   def getFilteredResponse[F[_] : Monad](response: Response,
-                                        usernameCache: PlayerUsernameCache[F],
+                                        authCache: AuthCache[F],
                                         playersCache: PlayersCache[F]): F[Option[Text]] = {
     (for {
-      username <- OptionT(usernameCache.read)
+      username <- OptionT(authCache.read)
       _ <- OptionT(playersCache.readOne(username))
       textResponse <- OptionT.fromOption(responseToText(username, response))
     } yield textResponse).value

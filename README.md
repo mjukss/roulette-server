@@ -28,32 +28,41 @@ curl -X POST http://localhost:8080/remove
 
 ### WS endpoints
 
-establish connection with [ws://localhost:8080](ws://localhost:8080)
+open connection on ws://localhost:8080
 
 join game
 
-```
-  '{"requestType":"JoinGame","username":$username,"password":$password}'
+```json
+  {
+  "requestType": "JoinGame",
+  "username": $username,
+  "password": $password
+  }
 ```
 
 place bet
 
+```json
+  {
+   requestType: "PlaceBet",
+    bet: {
+        betType: "Straight",
+        betAmount: $betAmount,
+        positions: [ $position ]
+    }
+  }
 ```
-  '{
-     requestType: "PlaceBet",
-     bet: {betType: "Straight", betAmount: $betAmount, positions: [$position]}
-   }'
-```
+
 clear bets
 
-```
-  '{"requestType":"ClearBets"}'
+```json
+  { "requestType": "ClearBets" }
 ```
 
 exit game
 
-```
-  '{"requestType":"ExitGame"}'
+```json
+  { "requestType": "ExitGame" }
 ```
 
 ### Bet types

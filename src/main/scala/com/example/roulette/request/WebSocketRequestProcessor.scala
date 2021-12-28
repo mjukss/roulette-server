@@ -11,7 +11,7 @@ import com.example.roulette.bet.Bet.Chips
 import com.example.roulette.bet.BetValidator.validateBet
 import com.example.roulette.game.{GameCache, GamePhase}
 import com.example.roulette.player.PlayerProcessor.getActivePlayers
-import com.example.roulette.player.{Player, PlayerUsernameCache, PlayersCache}
+import com.example.roulette.player.{Player, AuthCache, PlayersCache}
 import com.example.roulette.request.Request._
 import com.example.roulette.response.BadRequestMessage._
 import com.example.roulette.response.Response._
@@ -28,14 +28,14 @@ object WebSocketRequestProcessor {
                                           stream: Stream[F, WebSocketFrame],
                                           playersCache: PlayersCache[F],
                                           gameCache: GameCache[F],
-                                          usernameCache: PlayerUsernameCache[F],
+                                          authCache: AuthCache[F],
                                           queue: Queue[F, Option[Response]]): Stream[F, Unit] = {
     val requestStream = webSocketFrameToRequest(stream)
-    val playerOption = OptionT(usernameCache.read).flatMap(username => OptionT(playersCache.readOne(username))).value
+    val playerOption = OptionT(authCache.read).flatMap(username => OptionT(playersCache.readOne(username))).value
 
     requestStream.evalMapFilter { request =>
       (playerOption, gameCache.read, request.pure[F]).mapN {
-        case (_, phase, request: JoinGame) => joinGame(privateTopic, phase, request, usernameCache, playersCache)
+        case (_, phase, request: JoinGame) => joinGame(privateTopic, phase, request, authCache, playersCache)
         case (Some(player), phase, PlaceBet(bet)) => placeBet(privateTopic, player, phase, bet, playersCache)
         case (Some(player), _, ClearBets) => clearBets(player, playersCache).map(Option.apply)
         case (Some(player), _, ExitGame) => exitGame(player, playersCache).map(Option.apply)
@@ -48,7 +48,7 @@ object WebSocketRequestProcessor {
   private def joinGame[F[_] : Monad](privateTopic: Topic[F, WebSocketFrame],
                                      gamePhase: GamePhase,
                                      request: JoinGame,
-                                     usernameCache: PlayerUsernameCache[F],
+                                     usernameCache: AuthCache[F],
                                      playersCache: PlayersCache[F]): F[Option[Response]] = {
     val JoinGame(username, password) = request
 

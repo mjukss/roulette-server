@@ -4,7 +4,7 @@ import cats.effect.kernel.Concurrent
 import cats.effect.std.Queue
 import cats.implicits.{toFlatMapOps, toFunctorOps}
 import com.example.roulette.game.GameCache
-import com.example.roulette.player.{PlayerUsernameCache, PlayersCache}
+import com.example.roulette.player.{AuthCache, PlayersCache}
 import com.example.roulette.request.HttpRequestProcessor
 import com.example.roulette.request.Request.{RegisterPlayer, RemovePlayer}
 import com.example.roulette.request.WebSocketRequestProcessor.processWSRequest
@@ -40,14 +40,14 @@ object RouletteRoutes {
       case GET -> Root =>
         for {
           privateTopic <- Topic[F, WebSocketFrame]
-          usernameCache <- PlayerUsernameCache()
+          authCache <- AuthCache[F]()
           webSocketResponse <- {
             val combinedStreams = publicTopic.subscribe(1000)
-              .evalMapFilter(getFilteredResponse(_, usernameCache, playersCache))
+              .evalMapFilter(getFilteredResponse(_, authCache, playersCache))
               .merge(privateTopic.subscribe(1000))
 
             wsb.build(
-              receive = processWSRequest(privateTopic, _, playersCache, gameCache, usernameCache, queue),
+              receive = processWSRequest(privateTopic, _, playersCache, gameCache, authCache, queue),
               send = combinedStreams
             )
           }
